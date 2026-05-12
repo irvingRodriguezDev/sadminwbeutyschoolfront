@@ -4,11 +4,15 @@ import "./index.css";
 import App from "./App.jsx";
 import { premiumTheme } from "./theme/index.jsx";
 import { CssBaseline, ThemeProvider } from "@mui/material";
+import { AuthProvider } from "./context/AuthContext.jsx";
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <ThemeProvider theme={premiumTheme}>
       <CssBaseline />
-      <App />
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </ThemeProvider>
   </StrictMode>,
 );
