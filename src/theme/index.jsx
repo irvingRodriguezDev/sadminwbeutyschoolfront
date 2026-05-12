@@ -13,7 +13,7 @@ export const premiumTheme = createTheme({
         root: {
           textTransform: "none",
           fontWeight: 600,
-          borderRadius: "8px",
+          borderRadius: "4px",
         },
       },
     },

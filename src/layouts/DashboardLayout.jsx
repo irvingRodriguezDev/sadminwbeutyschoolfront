@@ -39,10 +39,16 @@ const DashboardLayout = () => {
   ];
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/login");
-  };
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
 
+      // Limpiamos cualquier rastro y al login
+      navigate("/login", { replace: true });
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error.message);
+    }
+  };
   const drawer = (
     <Box sx={{ p: 2 }}>
       <Toolbar>

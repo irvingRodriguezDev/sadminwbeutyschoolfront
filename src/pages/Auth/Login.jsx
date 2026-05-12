@@ -12,21 +12,26 @@ import {
 import { Visibility, VisibilityOff, Email } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { supabase } from "../../config/supabaseClient";
+import { Link, useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  const navigate = useNavigate();
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    if (error) alert(error.message);
+    if (error) {
+      alert(error.message);
+    } else if (data.user) {
+      navigate("/dashboard");
+    }
     setLoading(false);
   };
 
@@ -53,7 +58,7 @@ const Login = () => {
               background: "rgba(255, 255, 255, 0.4)",
               backdropFilter: "blur(15px)",
               border: "1px solid rgba(255, 255, 255, 0.5)",
-              borderRadius: 4,
+              borderRadius: 2,
             }}
           >
             <Typography
@@ -104,13 +109,21 @@ const Login = () => {
                   ),
                 }}
               />
+              <Link
+                style={{ textDecoration: "none" }}
+                to={"/recuperar-password"}
+              >
+                <Typography variant='body2' color='primary'>
+                  Olvidaste tu contraseña <b>Haz Click aquí</b>
+                </Typography>
+              </Link>
               <Button
                 fullWidth
                 size='large'
                 type='submit'
                 variant='contained'
                 disabled={loading}
-                sx={{ mt: 3, py: 1.5, fontWeight: "bold", borderRadius: 2 }}
+                sx={{ mt: 3, py: 1.5, fontWeight: "bold", borderRadius: 1 }}
               >
                 {loading ? "Entrando..." : "Iniciar Sesión"}
               </Button>
