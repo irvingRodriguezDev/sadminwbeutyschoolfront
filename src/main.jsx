@@ -5,13 +5,15 @@ import App from "./App.jsx";
 import { premiumTheme } from "./theme/index.jsx";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { AuthProvider } from "./context/AuthContext.jsx";
-
+import { SchoolProvider } from "./context/SchoolContext.jsx";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <ThemeProvider theme={premiumTheme}>
       <CssBaseline />
       <AuthProvider>
-        <App />
+        <SchoolProvider>
+          <App />
+        </SchoolProvider>
       </AuthProvider>
     </ThemeProvider>
   </StrictMode>,

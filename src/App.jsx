@@ -18,6 +18,8 @@ import GestionSalones from "./pages/SchoolAdmin/Salones/GestionSalones";
 import GestionCursos from "./pages/SchoolAdmin/Cursos/GestionCursos";
 import { useAuth } from "./context/AuthContext";
 import LoadingScreen from "./components/common/LoadingScreen";
+import AltaSalon from "./pages/SchoolAdmin/Salones/AltaSalon";
+import AltaCursoStepper from "./pages/SchoolAdmin/Cursos/AltaCurso";
 function App() {
   const { loading, profile } = useAuth();
 
@@ -42,7 +44,9 @@ function App() {
 
           {/* Rutas de Admin de Escuela (Tus clientes) */}
           <Route path='/salones' element={<GestionSalones />} />
+
           <Route path='/cursos' element={<GestionCursos />} />
+          <Route path='/crear-curso-nuevo' element={<AltaCursoStepper />} />
 
           <Route path='/configuracion' element={<Settings />} />
         </Route>

@@ -80,7 +80,7 @@ const SchoolAdminDashboard = () => {
 
       {/* Fila de Estadísticas Rápidas */}
       <Grid container spacing={3} mb={4}>
-        <Grid size={{ xs: 12, sm: 6, md: 3, lg: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 6, lg: 3, xl: 3 }}>
           <StatCard
             title='Salones'
             value='4'
@@ -88,7 +88,7 @@ const SchoolAdminDashboard = () => {
             color='#7b1fa2'
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3, lg: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 6, lg: 3, xl: 3 }}>
           <StatCard
             title='Cursos Activos'
             value='8'
@@ -96,7 +96,7 @@ const SchoolAdminDashboard = () => {
             color='#f06292'
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3, lg: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 6, lg: 3, xl: 3 }}>
           <StatCard
             title='Total Alumnos'
             value='124'
@@ -104,7 +104,7 @@ const SchoolAdminDashboard = () => {
             color='#2196f3'
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3, lg: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 6, lg: 3, xl: 3 }}>
           <StatCard
             title='Próximos Talleres'
             value='3'
@@ -116,7 +116,7 @@ const SchoolAdminDashboard = () => {
 
       <Grid container spacing={3} sx={{ mt: 2 }}>
         {/* Próximas Clases / Talleres */}
-        <Grid size={{ xs: 12, sm: 7, md: 7, lg: 7 }}>
+        <Grid size={{ xs: 12, sm: 12, md: 6, lg: 6, xl: 6 }}>
           <Paper sx={{ p: 3, borderRadius: 2, minHeight: 400 }}>
             <Typography variant='h6' fontWeight='bold' mb={3}>
               Actividad para Hoy
@@ -196,7 +196,7 @@ const SchoolAdminDashboard = () => {
         </Grid>
 
         {/* Resumen de Alumnos Recientes */}
-        <Grid size={{ xs: 12, md: 5 }}>
+        <Grid size={{ xs: 12, sm: 12, md: 6, lg: 6, xl: 6 }}>
           <Paper sx={{ p: 3, borderRadius: 2, minHeight: 400 }}>
             <Typography variant='h6' fontWeight='bold' mb={3}>
               Últimas Inscripciones
