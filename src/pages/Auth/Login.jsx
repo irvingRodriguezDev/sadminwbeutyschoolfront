@@ -13,6 +13,7 @@ import { Visibility, VisibilityOff, Email } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { supabase } from "../../config/supabaseClient";
 import { Link, useNavigate } from "react-router-dom";
+import { alerts } from "../../utils/alerts";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -28,7 +29,7 @@ const Login = () => {
       password,
     });
     if (error) {
-      alert(error.message);
+      alerts.error("¡Cuidado!", error.message);
     } else if (data.user) {
       navigate("/dashboard");
     }
@@ -79,6 +80,7 @@ const Login = () => {
                 label='Email'
                 margin='normal'
                 variant='outlined'
+                autoComplete='off'
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 InputProps={{
@@ -94,6 +96,7 @@ const Login = () => {
                 label='Contraseña'
                 margin='normal'
                 variant='outlined'
+                autoComplete='off'
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

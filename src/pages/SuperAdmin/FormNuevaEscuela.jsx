@@ -10,18 +10,18 @@ import {
   Divider,
   Alert,
 } from "@mui/material";
+import { alerts } from "../../utils/alerts";
 import { School, Business, Email, MyLocation, Send } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { escuelasService } from "../../api/schools";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 const FormNuevaEscuela = ({ onExito }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
 
     const formData = new FormData(e.target);
     const datos = {
@@ -31,20 +31,38 @@ const FormNuevaEscuela = ({ onExito }) => {
       lng: parseFloat(formData.get("lng")),
       emailAdmin: formData.get("emailAdmin"),
     };
-    const emailAdmin = formData.get("emailAdmin");
+
+    // 1. Mostrar loading inmediato con SweetAlert2
+    Swal.fire({
+      title: "Creando Academia...",
+      text: "Estamos configurando la escuela y enviando la invitación al administrador.",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading(); // Esto pone el spinner premium de Swal
+      },
+    });
 
     try {
-      await escuelasService.registrarEscuelaCompleta(datos, emailAdmin);
+      // 2. Ejecutar la llamada al servicio
+      await escuelasService.registrarEscuelaCompleta(datos, datos.emailAdmin);
+
+      // 3. Cambiar el loading por éxito
+      alerts.success(
+        "¡Registro Exitoso!",
+        `La escuela "${datos.name}" ha sido creada. Se envió un correo a ${datos.emailAdmin}.`,
+      );
+
       if (onExito) onExito();
 
-      // Redirigir a la tabla de escuelas después de 2 segundos
+      // 4. Redirigir (El usuario verá la confirmación de éxito antes de irse)
       setTimeout(() => {
         navigate("/escuelas");
-      }, 2000);
+      }, 2500);
     } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      // 5. En caso de error, cerramos el loading y mostramos el error
+      alerts.error("Error al registrar", err.message);
     }
   };
 
@@ -53,11 +71,15 @@ const FormNuevaEscuela = ({ onExito }) => {
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
     >
-      <Paper sx={{ p: 4, borderRadius: 4 }}>
+      <Paper sx={{ p: 4, borderRadius: 2 }}>
         <Typography variant='h5' fontWeight='bold' color='primary' gutterBottom>
-          Registrar Nueva Institución
+          Registrar Nuevo Centro de Capacitaciones
         </Typography>
-        <Typography variant='body2' color='textSecondary' mb={3}>
+        <Typography
+          variant='body2'
+          color='textSecondary'
+          sx={{ marginBottom: 3 }}
+        >
           Configura los datos base de la escuela y asigna un administrador.
         </Typography>
 
@@ -76,6 +98,7 @@ const FormNuevaEscuela = ({ onExito }) => {
                 required
                 name='nombre'
                 label='Nombre de la Escuela'
+                autoComplete='off'
                 InputProps={{
                   startAdornment: <Business color='primary' sx={{ mr: 1 }} />,
                 }}
@@ -88,6 +111,7 @@ const FormNuevaEscuela = ({ onExito }) => {
                 required
                 name='direccion'
                 label='Dirección Completa'
+                autoComplete='off'
                 placeholder='Ej. Av. Vallarta 123, Guadalajara'
                 InputProps={{
                   startAdornment: <MyLocation color='primary' sx={{ mr: 1 }} />,
@@ -102,6 +126,7 @@ const FormNuevaEscuela = ({ onExito }) => {
                 required
                 name='lat'
                 label='Latitud'
+                autoComplete='off'
                 type='text'
                 inputProps={{ step: "any" }}
               />
@@ -111,6 +136,7 @@ const FormNuevaEscuela = ({ onExito }) => {
                 fullWidth
                 required
                 name='lng'
+                autoComplete='off'
                 label='Longitud'
                 type='text'
                 inputProps={{ step: "any" }}
@@ -126,6 +152,7 @@ const FormNuevaEscuela = ({ onExito }) => {
                 fullWidth
                 required
                 name='emailAdmin'
+                autoComplete='off'
                 label='Email del Administrador'
                 type='email'
                 helperText='Se enviará una invitación para configurar su contraseña.'
@@ -143,7 +170,7 @@ const FormNuevaEscuela = ({ onExito }) => {
                 variant='contained'
                 disabled={loading}
                 startIcon={<Send />}
-                sx={{ py: 1.5, fontWeight: "bold" }}
+                sx={{ py: 1.5, fontWeight: "bold", borderRadius: 1 }}
               >
                 {loading ? "Procesando..." : "Crear Escuela y Admin"}
               </Button>

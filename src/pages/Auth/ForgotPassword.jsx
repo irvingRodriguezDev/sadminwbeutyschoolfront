@@ -8,8 +8,8 @@ import {
   Paper,
   Container,
   IconButton,
-  Alert,
   Fade,
+  Alert,
 } from "@mui/material";
 import { ArrowBack, Email, Send, MarkEmailRead } from "@mui/icons-material";
 import { motion } from "framer-motion";
@@ -29,7 +29,7 @@ const ForgotPassword = () => {
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       // Importante: Redirige a la misma página de 'complete-setup' que ya tenemos
-      redirectTo: "http://localhost:5173/complete-setup",
+      redirectTo: "http://localhost:5173/completed-setup",
     });
 
     if (error) {

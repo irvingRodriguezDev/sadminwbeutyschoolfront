@@ -8,28 +8,34 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Manejo de CORS (Preflight)
+  // Manejo de CORS (Preflight para navegadores)
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
+    // Inicializar cliente Admin (necesario para auth.admin)
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "", // Llave maestra segura
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     );
 
     const { name, address, lat, lng, emailAdmin } = await req.json();
 
-    // 1. Insertar Escuela
+    if (!emailAdmin || !name) {
+      throw new Error("El nombre de la escuela y el email del admin son obligatorios.");
+    }
+
+    // 1. Insertar la Escuela en la tabla 'schools'
     const { data: escuela, error: errorEscuela } = await supabaseAdmin
       .from("schools")
       .insert([
         {
           name,
           address,
+          // PostGIS usa POINT(lng lat)
           location: `POINT(${lng} ${lat})`,
-          slug: name.toLowerCase().replace(/ /g, "-"),
+          slug: name.toLowerCase().trim().replace(/\s+/g, "-"),
         },
       ])
       .select()
@@ -37,46 +43,44 @@ serve(async (req) => {
 
     if (errorEscuela) throw errorEscuela;
 
-    // 2. Crear usuario administrador e invitarlo
-    // Esto crea el registro en auth.users
+    // 2. Invitar al Administrador
+    // Enviamos 'school_id' y 'rol' en los metadatos (user_metadata)
+    // El Trigger de Postgres los leerá automáticamente al insertar en 'profiles'
     const { data: inviteData, error: errorInvite } =
       await supabaseAdmin.auth.admin.inviteUserByEmail(emailAdmin, {
-        redirectTo: 'http://localhost:5173/complete-setup',
+        redirectTo: 'http://localhost:5173/completed-setup',
         data: {
-          full_name: "Admin " + name,
-          is_school_admin: true,
+          name: `Administrador ${name}`,
+          rol: "school_admin",
+          school_id: escuela.id, 
         },
       });
 
-    if (errorInvite) throw errorInvite;
-
-    // 3. Vincular el perfil creado automáticamente con la escuela
-    // (Asumiendo que tienes un trigger que crea el perfil o lo creamos aquí)
-    const { error: errorPerfil } = await supabaseAdmin
-      .from("profiles")
-      .update({
-        school_id: escuela.id,
-        rol: "school_admin",
-        name: "Administrador " + name,
-      })
-      .eq("id", inviteData.user.id);
-
-    if (errorPerfil) throw errorPerfil;
+    if (errorInvite) {
+      // Si la invitación falla, podrías considerar borrar la escuela creada (rollback manual)
+      // aunque lo ideal es que el admin verifique si el usuario ya existe.
+      throw errorInvite;
+    }
 
     return new Response(
       JSON.stringify({
-        message: "Escuela y Admin creados con éxito",
+        message: "Escuela creada y administrador invitado exitosamente.",
         escuelaId: escuela.id,
+        userId: inviteData.user.id
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       },
     );
+
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 400,
-    });
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      },
+    );
   }
 });

@@ -17,28 +17,18 @@ import DashboardRouter from "./pages/DashboardRouter";
 import GestionSalones from "./pages/SchoolAdmin/Salones/GestionSalones";
 import GestionCursos from "./pages/SchoolAdmin/Cursos/GestionCursos";
 import { useAuth } from "./context/AuthContext";
+import LoadingScreen from "./components/common/LoadingScreen";
 function App() {
   const { loading, profile } = useAuth();
 
   if (loading) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-        }}
-      >
-        <p>Cargando aplicación...</p>
-      </div>
-    );
+    return <LoadingScreen message='Cargando aplicación' />;
   }
   return (
     <Router>
       <Routes>
         <Route path='/login' element={<Login />} />
-        <Route path='/complete-setup' element={<CompleteSetup />} />
+        <Route path='/completed-setup' element={<CompleteSetup />} />
         <Route path='/recuperar-password' element={<ForgotPassword />} />
 
         {/* Rutas Protegidas */}

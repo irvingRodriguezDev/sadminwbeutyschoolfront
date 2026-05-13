@@ -3,29 +3,13 @@ import SuperAdminDashboard from "./SuperAdmin/SuperAdminDashboard";
 import SchoolAdminDashboard from "./SchoolAdmin/SchoolAdminDashboard";
 import { CircularProgress, Box, Typography } from "@mui/material";
 import { useAuth } from "../context/AuthContext";
-
+import LoadingScreen from "../components/common/LoadingScreen";
 const DashboardRouter = () => {
   const { profile, loading } = useAuth();
 
   // Mientras el AuthContext verifica la sesión y el perfil
   if (loading) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "60vh",
-          gap: 2,
-        }}
-      >
-        <CircularProgress sx={{ color: "#f06292" }} />
-        <Typography variant='body2' color='textSecondary'>
-          Cargando tu panel personalizado...
-        </Typography>
-      </Box>
-    );
+    return <LoadingScreen message='Cargando tu panel personalizado' />;
   }
 
   // Manejo de error si no se encuentra el perfil o el rol

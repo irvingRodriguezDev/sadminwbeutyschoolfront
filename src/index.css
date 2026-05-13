@@ -109,3 +109,23 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+.premium-swal-popup {
+  font-family: "Inter", sans-serif; /* O la fuente que uses */
+  border-radius: 20px !important;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 10px 30px rgba(240, 98, 146, 0.2) !important;
+}
+
+.premium-swal-title {
+  color: #333 !important;
+  font-weight: 700 !important;
+}
+
+.premium-swal-confirm {
+  padding: 10px 25px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}

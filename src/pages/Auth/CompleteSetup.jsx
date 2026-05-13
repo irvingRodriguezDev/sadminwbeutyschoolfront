@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { supabase } from "../../config/supabaseClient";
 import {
   Box,
@@ -9,7 +9,6 @@ import {
   Container,
   InputAdornment,
   IconButton,
-  Alert,
   Fade,
 } from "@mui/material";
 import {
@@ -20,31 +19,57 @@ import {
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-
+import LoadingScreen from "../../components/common/LoadingScreen";
+import { alerts } from "../../utils/alerts";
 const CompleteSetup = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [verifying, setVerifying] = useState(true); // Estado para validar sesión
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // 1. Validar si el link nos dio una sesión automática
+    const checkSession = async () => {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
+      if (error || !session) {
+        console.error("No se encontró sesión activa del enlace");
+        // Opcional: podrías redirigir al login si el link es viejo
+      }
+      setVerifying(false);
+      setLoading(false);
+    };
+
+    checkSession();
+  }, []);
 
   const handleFinish = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    // Esto toma el token que viene en la URL automáticamente
+    // 2. Intentar actualizar la contraseña
     const { error } = await supabase.auth.updateUser({ password });
 
     if (error) {
-      alert(error.message);
+      // Si sigue saliendo authSessionMissing, es que el token expiró
+      alerts.error("Error: " + error.message);
       setLoading(false);
     } else {
-      setSuccess(true);
-      setTimeout(() => {
-        navigate("/login");
-      }, 3000);
+      alerts.success("¡Correcto!", "¡Contraseña establecida con éxito!");
+      // 3. Importante: cerrar sesión para limpiar el token del link
+      await supabase.auth.signOut();
+      navigate("/login");
     }
   };
+
+  if (verifying)
+    return <LoadingScreen message='Verificando enlace de invitación...' />;
+  if (loading) return <LoadingScreen message='Guardando configuración...' />;
 
   return (
     <Box

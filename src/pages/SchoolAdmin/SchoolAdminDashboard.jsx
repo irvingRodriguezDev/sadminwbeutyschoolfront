@@ -25,7 +25,7 @@ const StatCard = ({ title, value, icon, color }) => (
     <Paper
       sx={{
         p: 3,
-        borderRadius: 4,
+        borderRadius: 2,
         display: "flex",
         alignItems: "center",
         gap: 2,
@@ -38,7 +38,7 @@ const StatCard = ({ title, value, icon, color }) => (
       <Box
         sx={{
           p: 1.5,
-          borderRadius: 3,
+          borderRadius: 2,
           backgroundColor: `${color}15`,
           color: color,
           display: "flex",
@@ -80,7 +80,7 @@ const SchoolAdminDashboard = () => {
 
       {/* Fila de Estadísticas Rápidas */}
       <Grid container spacing={3} mb={4}>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3, lg: 3 }}>
           <StatCard
             title='Salones'
             value='4'
@@ -88,7 +88,7 @@ const SchoolAdminDashboard = () => {
             color='#7b1fa2'
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3, lg: 3 }}>
           <StatCard
             title='Cursos Activos'
             value='8'
@@ -96,7 +96,7 @@ const SchoolAdminDashboard = () => {
             color='#f06292'
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3, lg: 3 }}>
           <StatCard
             title='Total Alumnos'
             value='124'
@@ -104,7 +104,7 @@ const SchoolAdminDashboard = () => {
             color='#2196f3'
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3, lg: 3 }}>
           <StatCard
             title='Próximos Talleres'
             value='3'
@@ -114,10 +114,10 @@ const SchoolAdminDashboard = () => {
         </Grid>
       </Grid>
 
-      <Grid container spacing={3}>
+      <Grid container spacing={3} sx={{ mt: 2 }}>
         {/* Próximas Clases / Talleres */}
-        <Grid item xs={12} md={7}>
-          <Paper sx={{ p: 3, borderRadius: 4, minHeight: 400 }}>
+        <Grid size={{ xs: 12, sm: 7, md: 7, lg: 7 }}>
+          <Paper sx={{ p: 3, borderRadius: 2, minHeight: 400 }}>
             <Typography variant='h6' fontWeight='bold' mb={3}>
               Actividad para Hoy
             </Typography>
@@ -146,7 +146,7 @@ const SchoolAdminDashboard = () => {
                   key={i}
                   sx={{
                     p: 2.5,
-                    borderRadius: 3,
+                    borderRadius: 2,
                     bgcolor: "#fdf7f9",
                     display: "flex",
                     justifyContent: "space-between",
@@ -196,8 +196,8 @@ const SchoolAdminDashboard = () => {
         </Grid>
 
         {/* Resumen de Alumnos Recientes */}
-        <Grid item xs={12} md={5}>
-          <Paper sx={{ p: 3, borderRadius: 4, minHeight: 400 }}>
+        <Grid size={{ xs: 12, md: 5 }}>
+          <Paper sx={{ p: 3, borderRadius: 2, minHeight: 400 }}>
             <Typography variant='h6' fontWeight='bold' mb={3}>
               Últimas Inscripciones
             </Typography>
@@ -238,7 +238,7 @@ const SchoolAdminDashboard = () => {
                 mt: 4,
                 p: 2,
                 bgcolor: "#f5f5f5",
-                borderRadius: 3,
+                borderRadius: 2,
                 textAlign: "center",
               }}
             >
