@@ -6,13 +6,16 @@ import { premiumTheme } from "./theme/index.jsx";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { SchoolProvider } from "./context/SchoolContext.jsx";
+import { CursoProvider } from "./context/CursoContext.jsx";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <ThemeProvider theme={premiumTheme}>
       <CssBaseline />
       <AuthProvider>
         <SchoolProvider>
-          <App />
+          <CursoProvider>
+            <App />
+          </CursoProvider>
         </SchoolProvider>
       </AuthProvider>
     </ThemeProvider>
