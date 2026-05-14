@@ -7,16 +7,19 @@ import { CssBaseline, ThemeProvider } from "@mui/material";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { SchoolProvider } from "./context/SchoolContext.jsx";
 import { CursoProvider } from "./context/CursoContext.jsx";
+import { SuperAdminProvider } from "./context/SuperAdminContext.jsx";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <ThemeProvider theme={premiumTheme}>
       <CssBaseline />
       <AuthProvider>
-        <SchoolProvider>
-          <CursoProvider>
-            <App />
-          </CursoProvider>
-        </SchoolProvider>
+        <SuperAdminProvider>
+          <SchoolProvider>
+            <CursoProvider>
+              <App />
+            </CursoProvider>
+          </SchoolProvider>
+        </SuperAdminProvider>
       </AuthProvider>
     </ThemeProvider>
   </StrictMode>,

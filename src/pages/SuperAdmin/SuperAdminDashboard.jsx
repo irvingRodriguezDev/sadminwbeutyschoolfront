@@ -17,13 +17,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-
-const dataPrueba = [
-  { name: "Ene", escuelas: 4 },
-  { name: "Feb", escuelas: 7 },
-  { name: "Mar", escuelas: 12 },
-  { name: "Abr", escuelas: 19 },
-];
+import { useSuperAdmin } from "../../context/SuperAdminContext";
 
 const StatCard = ({ title, value, icon, color }) => (
   <motion.div whileHover={{ y: -5 }}>
@@ -61,6 +55,7 @@ const StatCard = ({ title, value, icon, color }) => (
 );
 
 const SuperAdminDashboard = () => {
+  const { stats, ultimosRegistros, chartData } = useSuperAdmin();
   return (
     <Box>
       <Typography variant='h4' fontWeight='bold' sx={{ mb: 4, color: "#333" }}>
@@ -72,23 +67,23 @@ const SuperAdminDashboard = () => {
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
             title='Escuelas Activas'
-            value='24'
+            value={stats.totalEscuelas}
             icon={<School />}
             color='#f06292'
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
-            title='Total Alumnos'
-            value='1,250'
+            title='Total Usuarios'
+            value={stats.totalUsuarios}
             icon={<People />}
             color='#7b1fa2'
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
-            title='Ingresos Mes'
-            value='$45,200'
+            title='Total Cursos'
+            value={stats.totalCursos}
             icon={<MonetizationOn />}
             color='#4caf50'
           />
@@ -96,7 +91,7 @@ const SuperAdminDashboard = () => {
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
             title='Crecimiento'
-            value='+15%'
+            value={stats.crecimientoEscuelas}
             icon={<TrendingUp />}
             color='#2196f3'
           />
@@ -111,7 +106,7 @@ const SuperAdminDashboard = () => {
               Crecimiento de Instituciones
             </Typography>
             <ResponsiveContainer width='100%' height='80%'>
-              <LineChart data={dataPrueba}>
+              <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray='3 3' vertical={false} />
                 <XAxis dataKey='name' axisLine={false} tickLine={false} />
                 <YAxis axisLine={false} tickLine={false} />
@@ -138,11 +133,7 @@ const SuperAdminDashboard = () => {
               Últimos Registros
             </Typography>
             <Stack spacing={2}>
-              {[
-                "Escuela Oxford",
-                "Instituto Americano",
-                "Colegio del Valle",
-              ].map((item, i) => (
+              {ultimosRegistros.map((registro, i) => (
                 <Box
                   key={i}
                   sx={{
@@ -153,10 +144,11 @@ const SuperAdminDashboard = () => {
                   }}
                 >
                   <Typography variant='subtitle2' fontWeight='bold'>
-                    {item}
+                    {registro.name}
                   </Typography>
                   <Typography variant='caption' color='textSecondary'>
-                    Hace {i + 1} horas
+                    Registrada hace:{" "}
+                    {new Date(registro.created_at).toLocaleDateString()}
                   </Typography>
                 </Box>
               ))}

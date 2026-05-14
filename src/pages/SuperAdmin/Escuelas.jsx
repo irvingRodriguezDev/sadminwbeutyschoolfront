@@ -13,18 +13,10 @@ import { Add, LocationOn, AccountBalanceWallet } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { escuelasService } from "../../api/schools";
 import { Link } from "react-router-dom";
+import { useSuperAdmin } from "../../context/SuperAdminContext";
 
 const ListaEscuelas = () => {
-  const [escuelas, setEscuelas] = useState([]);
-
-  useEffect(() => {
-    cargarEscuelas();
-  }, []);
-
-  const cargarEscuelas = async () => {
-    const data = await escuelasService.obtenerEscuelas();
-    setEscuelas(data);
-  };
+  const { escuelas_activas } = useSuperAdmin();
 
   return (
     <Box>
@@ -52,7 +44,7 @@ const ListaEscuelas = () => {
       </Box>
 
       <Grid container spacing={3}>
-        {escuelas.map((escuela, index) => (
+        {escuelas_activas.map((escuela, index) => (
           <Grid size={{ xs: 12, sm: 6, md: 6, lg: 3 }} key={escuela.id}>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -62,7 +54,7 @@ const ListaEscuelas = () => {
               <Card>
                 <CardContent>
                   <Typography variant='h6' fontWeight='bold'>
-                    {escuela.nombre}
+                    {escuela.name}
                   </Typography>
                   <Box
                     sx={{
@@ -74,7 +66,7 @@ const ListaEscuelas = () => {
                   >
                     <LocationOn fontSize='small' sx={{ mr: 0.5 }} />
                     <Typography variant='body2'>
-                      {escuela.direccion || "Ubicación no definida"}
+                      {escuela.address || "Ubicación no definida"}
                     </Typography>
                   </Box>
                   <Box
@@ -87,11 +79,11 @@ const ListaEscuelas = () => {
                   >
                     <Chip
                       label={
-                        escuela.stripe_account_id
+                        escuela.stripe_public_key
                           ? "Stripe Conectado"
                           : "Stripe Pendiente"
                       }
-                      color={escuela.stripe_account_id ? "success" : "warning"}
+                      color={escuela.stripe_public_key ? "success" : "warning"}
                       size='small'
                       variant='outlined'
                     />
