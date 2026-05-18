@@ -20,7 +20,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     );
 
-    const { name, address, lat, lng, emailAdmin } = await req.json();
+    const { name, emailAdmin } = await req.json();
 
     if (!emailAdmin || !name) {
       throw new Error("El nombre de la escuela y el email del admin son obligatorios.");
@@ -32,9 +32,6 @@ serve(async (req) => {
       .insert([
         {
           name,
-          address,
-          // PostGIS usa POINT(lng lat)
-          location: `POINT(${lng} ${lat})`,
           slug: name.toLowerCase().trim().replace(/\s+/g, "-"),
         },
       ])

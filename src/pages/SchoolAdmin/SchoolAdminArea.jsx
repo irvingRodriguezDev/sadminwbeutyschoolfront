@@ -9,7 +9,7 @@ const SchoolAdminArea = ({ userProfile }) => {
   const [loading, setLoading] = useState(true);
   const [needsOnboarding, setNeedsOnboarding] = useState(true);
   const [schoolData, setSchoolData] = useState(null);
-
+  localStorage.setItem("needsOnBoarding", needsOnboarding);
   useEffect(() => {
     const checkSchoolStatus = async () => {
       try {
@@ -25,8 +25,9 @@ const SchoolAdminArea = ({ userProfile }) => {
         setSchoolData(school);
 
         // Condición clave: Si no hay Stripe Key, necesita onboarding
-        if (school.stripe_public_key) {
+        if (school.stripe_account_id && school.stripe_onboarding_complete) {
           setNeedsOnboarding(false);
+          localStorage.setItem("needsOnBoarding", false);
         }
       } catch (error) {
         console.error("Error verificando estatus:", error.message);

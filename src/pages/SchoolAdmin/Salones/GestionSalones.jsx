@@ -5,6 +5,7 @@ import AltaSalon from "./AltaSalon";
 import EditarSalon from "./EditarSalon";
 import { alerts } from "../../../utils/alerts";
 import { supabase } from "../../../config/supabaseClient";
+import EmptySalones from "./EmptySalones";
 
 const GestionSalones = () => {
   const { salones, loadingSchool, refreshSchoolData } = useSchool();
@@ -87,9 +88,7 @@ const GestionSalones = () => {
             </Grid>
           ))}
           {salones.length === 0 && (
-            <Typography sx={{ mt: 2, ml: 3 }}>
-              Aún no has registrado salones.
-            </Typography>
+            <EmptySalones onNuevoSalon={() => setModalOpen(true)} />
           )}
         </Grid>
       )}

@@ -6,6 +6,7 @@ import { useCursos } from "../../../context/CursoContext";
 import TarjetaCurso from "../../../components/common/TarjetaCurso";
 import EditarCursoStepper from "./EditarCursoStepper";
 import { alerts } from "../../../utils/alerts";
+import EmptyCursosAnimated from "./EmptyCursosAnimated";
 
 const GestionCursos = () => {
   const { cursos, loadingCursos, refreshCursos } = useCursos();
@@ -69,11 +70,7 @@ const GestionCursos = () => {
                 />
               </Grid>
             ))}
-            {cursos.length === 0 && (
-              <Typography sx={{ mt: 2, ml: 3 }}>
-                Aún no has registrado cursos.
-              </Typography>
-            )}
+            {cursos.length === 0 && <EmptyCursosAnimated />}
           </Grid>
           {cursoSeleccionado && (
             <Dialog

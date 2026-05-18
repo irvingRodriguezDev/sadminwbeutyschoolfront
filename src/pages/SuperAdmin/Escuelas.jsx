@@ -79,11 +79,11 @@ const ListaEscuelas = () => {
                   >
                     <Chip
                       label={
-                        escuela.stripe_public_key
+                        escuela.stripe_account_id
                           ? "Stripe Conectado"
                           : "Stripe Pendiente"
                       }
-                      color={escuela.stripe_public_key ? "success" : "warning"}
+                      color={escuela.stripe_account_id ? "success" : "warning"}
                       size='small'
                       variant='outlined'
                     />

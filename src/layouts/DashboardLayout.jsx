@@ -35,10 +35,20 @@ const drawerWidth = 280;
 
 const DashboardLayout = () => {
   const { profile } = useAuth();
+
   const location = useLocation();
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [needsOnBoarding, setNeedsOnBoarding] = useState(() => {
+    const savedValue = localStorage.getItem("needsOnBoarding");
+
+    // Si no hay nada guardado, podemos asumir 'true' por defecto (necesita onboarding)
+    if (savedValue === null) return true;
+
+    // Convertimos el string "true" o "false" a un booleano real
+    return savedValue === "true";
+  });
 
   // Ahora este estado controla ambos: el temporal en móvil y el persistente en desktop
   const [open, setOpen] = useState(false);
@@ -194,23 +204,25 @@ const DashboardLayout = () => {
       >
         <Toolbar sx={{ justifyContent: "space-between" }}>
           <Box sx={{ display: "flex", alignItems: "center" }}>
-            <IconButton
-              color='inherit'
-              aria-label='open drawer'
-              onClick={handleDrawerToggle}
-              edge='start'
-              sx={{
-                mr: 2,
-                ...(open && { display: { xs: "block", sm: "none" } }),
-              }}
-            >
-              <MenuIcon />
-            </IconButton>
+            {needsOnBoarding === false && (
+              <IconButton
+                color='inherit'
+                aria-label='open drawer'
+                onClick={handleDrawerToggle}
+                edge='start'
+                sx={{
+                  mr: 2,
+                  ...(open && { display: { xs: "block", sm: "none" } }),
+                }}
+              >
+                <MenuIcon />
+              </IconButton>
+            )}
             <Typography variant='body1' fontWeight={600} sx={{ color: "#444" }}>
               {location.pathname === "/dashboard"
                 ? profile?.rol === "superadmin"
                   ? "Panel Super administrador"
-                  : "MI ACADEMIA"
+                  : profile?.name
                 : location.pathname.replace("/", "").toUpperCase()}
             </Typography>
           </Box>
@@ -231,9 +243,6 @@ const DashboardLayout = () => {
                   : "Gestor de Academia"}
               </Typography>
             </Box>
-            {/* <Avatar sx={{ bgcolor: "#f06292", width: 38, height: 38 }}>
-              {profile?.nombre?.charAt(0)}
-            </Avatar> */}
           </Box>
         </Toolbar>
       </AppBar>

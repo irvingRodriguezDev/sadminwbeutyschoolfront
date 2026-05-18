@@ -140,7 +140,7 @@ const ForgotPassword = () => {
               <Fade in={sent}>
                 <Box sx={{ py: 2 }}>
                   <MarkEmailRead
-                    sx={{ fontSize: 70, color: "#a5d6a7", mb: 2 }}
+                    sx={{ fontSize: 70, color: "#F2709C", mb: 2 }}
                   />
                   <Typography
                     variant='h5'
@@ -158,8 +158,8 @@ const ForgotPassword = () => {
                     variant='outlined'
                     onClick={() => navigate("/login")}
                     sx={{
-                      color: "white",
-                      borderColor: "white",
+                      color: "#F2709C",
+                      borderColor: "#F2709C",
                       borderRadius: 3,
                     }}
                   >

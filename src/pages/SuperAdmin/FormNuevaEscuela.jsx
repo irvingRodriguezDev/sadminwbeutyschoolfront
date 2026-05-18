@@ -26,9 +26,6 @@ const FormNuevaEscuela = ({ onExito }) => {
     const formData = new FormData(e.target);
     const datos = {
       name: formData.get("nombre"),
-      address: formData.get("direccion"),
-      lat: parseFloat(formData.get("lat")),
-      lng: parseFloat(formData.get("lng")),
       emailAdmin: formData.get("emailAdmin"),
     };
 
@@ -102,44 +99,6 @@ const FormNuevaEscuela = ({ onExito }) => {
                 InputProps={{
                   startAdornment: <Business color='primary' sx={{ mr: 1 }} />,
                 }}
-              />
-            </Grid>
-
-            <Grid size={12}>
-              <TextField
-                fullWidth
-                required
-                name='direccion'
-                label='Dirección Completa'
-                autoComplete='off'
-                placeholder='Ej. Av. Vallarta 123, Guadalajara'
-                InputProps={{
-                  startAdornment: <MyLocation color='primary' sx={{ mr: 1 }} />,
-                }}
-              />
-            </Grid>
-
-            {/* Coordenadas (Provisionales hasta meter Google Maps) */}
-            <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                fullWidth
-                required
-                name='lat'
-                label='Latitud'
-                autoComplete='off'
-                type='text'
-                inputProps={{ step: "any" }}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                fullWidth
-                required
-                name='lng'
-                autoComplete='off'
-                label='Longitud'
-                type='text'
-                inputProps={{ step: "any" }}
               />
             </Grid>
 
