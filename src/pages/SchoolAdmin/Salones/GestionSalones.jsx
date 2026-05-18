@@ -6,6 +6,7 @@ import EditarSalon from "./EditarSalon";
 import { alerts } from "../../../utils/alerts";
 import { supabase } from "../../../config/supabaseClient";
 import EmptySalones from "./EmptySalones";
+import SalonCard from "../../../components/common/SalonCard";
 
 const GestionSalones = () => {
   const { salones, loadingSchool, refreshSchoolData } = useSchool();
@@ -58,34 +59,12 @@ const GestionSalones = () => {
       ) : (
         <Grid container spacing={3}>
           {salones.map((salon) => (
-            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={salon.id}>
-              <Paper
-                sx={{ p: 3, borderRadius: 1, borderLeft: "5px solid #f06292" }}
-              >
-                <Typography variant='h6'>{salon.nombre}</Typography>
-                <Typography color='textSecondary'>
-                  Capacidad: {salon.capacidad} alumnas
-                </Typography>
-                <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
-                  <Button
-                    size='small'
-                    variant='outlined'
-                    color='info'
-                    onClick={() => handleAbrirEditor(salon)} // Función que setea el salón seleccionado y abre el modal
-                  >
-                    Editar
-                  </Button>
-                  <Button
-                    size='small'
-                    variant='outlined'
-                    color='error'
-                    onClick={() => handleDeleteSalon(salon.id)}
-                  >
-                    Eliminar
-                  </Button>
-                </Box>
-              </Paper>
-            </Grid>
+            <SalonCard
+              salon={salon}
+              handleAbrirEditor={handleAbrirEditor}
+              handleDeleteSalon={handleDeleteSalon}
+              index={salon.id}
+            />
           ))}
           {salones.length === 0 && (
             <EmptySalones onNuevoSalon={() => setModalOpen(true)} />

@@ -67,6 +67,7 @@ const AltaSalon = ({ open, onClose }) => {
               fullWidth
               label='Nombre del Salón'
               required
+              autoComplete='off'
               placeholder='Ej. Salón de Manicura Pro'
               value={formData.nombre}
               onChange={(e) =>
