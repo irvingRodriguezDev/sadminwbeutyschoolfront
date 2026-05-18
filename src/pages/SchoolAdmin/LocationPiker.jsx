@@ -18,7 +18,7 @@ const centerDefault = {
 const LocationPicker = ({ onLocationSelect }) => {
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
-    googleMapsApiKey: "AIzaSyDdGMcGXFWq1mwqR80Crlvu77LSKmPKbbU", // REEMPLAZA ESTO
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY, // REEMPLAZA ESTO
     libraries: ["places"],
   });
 
