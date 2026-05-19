@@ -7,12 +7,15 @@ import {
   TextField,
 } from "@mui/material";
 import { useState } from "react";
+import { alerts } from "../../../utils/alerts";
+import { supabase } from "../../../config/supabaseClient";
+import { useSchool } from "../../../context/SchoolContext";
 
 const EditarSalon = ({ open, onClose, salon }) => {
+  const { refreshSchoolData } = useSchool();
   const [formData, setFormData] = useState({
     nombre: salon?.nombre || "",
     capacidad: salon?.capacidad || "",
-    descripcion: salon?.descripcion || "",
   });
 
   const handleUpdate = async (e) => {
@@ -23,7 +26,6 @@ const EditarSalon = ({ open, onClose, salon }) => {
         .update({
           nombre: formData.nombre,
           capacidad: parseInt(formData.capacidad),
-          descripcion: formData.descripcion,
         })
         .eq("id", salon.id);
 
@@ -31,7 +33,7 @@ const EditarSalon = ({ open, onClose, salon }) => {
 
       alerts.success("Actualizado", "Los datos del salón se han modificado.");
       onClose();
-      refreshSalones();
+      refreshSchoolData();
     } catch (error) {
       alerts.error("Error", error.message);
     }

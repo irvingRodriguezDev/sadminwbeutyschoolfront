@@ -18,7 +18,8 @@ import {
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
-
+import { useAdminSchool } from "../../context/AdminSchoolContext";
+import LoadingScreen from "../../components/common/LoadingScreen";
 // Reutilizamos una versión local del StatCard para mantener el estilo
 const StatCard = ({ title, value, icon, color }) => (
   <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.3 }}>
@@ -65,6 +66,21 @@ const StatCard = ({ title, value, icon, color }) => (
 
 const SchoolAdminDashboard = () => {
   const { profile } = useAuth();
+
+  const {
+    schoolData,
+    metrics,
+    actividadesHoy,
+    ultimasInscripciones,
+    loadingDashboard,
+  } = useAdminSchool(profile?.school_id);
+  if (loadingDashboard) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 10 }}>
+        <LoadingScreen message='Preparando tu dashboard' />
+      </Box>
+    );
+  }
 
   return (
     <Box>

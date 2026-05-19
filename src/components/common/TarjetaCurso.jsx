@@ -145,7 +145,7 @@ const TarjetaCurso = ({ curso, onEdit, onDelete, index }) => {
                 </ListItemIcon>
                 <ListItemText
                   primary='Editar'
-                  primaryTypographyProps={{ variant: "body2", fontWeight: 700 }}
+                  // primaryTypographyProps={{ variant: "body2", fontWeight: 700 }}
                 />
               </MenuItem>
 
@@ -163,7 +163,7 @@ const TarjetaCurso = ({ curso, onEdit, onDelete, index }) => {
                 </ListItemIcon>
                 <ListItemText
                   primary='Eliminar'
-                  primaryTypographyProps={{ variant: "body2", fontWeight: 700 }}
+                  // primaryTypographyProps={{ variant: "body2", fontWeight: 700 }}
                 />
               </MenuItem>
             </Menu>

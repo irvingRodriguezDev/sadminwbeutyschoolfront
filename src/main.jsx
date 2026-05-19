@@ -8,17 +8,20 @@ import { AuthProvider } from "./context/AuthContext.jsx";
 import { SchoolProvider } from "./context/SchoolContext.jsx";
 import { CursoProvider } from "./context/CursoContext.jsx";
 import { SuperAdminProvider } from "./context/SuperAdminContext.jsx";
+import { AdminSchoolProvider } from "./context/AdminSchoolContext.jsx";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <ThemeProvider theme={premiumTheme}>
       <CssBaseline />
       <AuthProvider>
         <SuperAdminProvider>
-          <SchoolProvider>
-            <CursoProvider>
-              <App />
-            </CursoProvider>
-          </SchoolProvider>
+          <AdminSchoolProvider>
+            <SchoolProvider>
+              <CursoProvider>
+                <App />
+              </CursoProvider>
+            </SchoolProvider>
+          </AdminSchoolProvider>
         </SuperAdminProvider>
       </AuthProvider>
     </ThemeProvider>

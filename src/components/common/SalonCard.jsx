@@ -32,7 +32,7 @@ const SalonCard = ({ salon, handleAbrirEditor, handleDeleteSalon, index }) => {
   };
 
   return (
-    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 3 }}>
       <Box
         component={motion.div}
         initial={{ opacity: 0, y: 15 }}
@@ -172,10 +172,10 @@ const SalonCard = ({ salon, handleAbrirEditor, handleDeleteSalon, index }) => {
                   </ListItemIcon>
                   <ListItemText
                     primary='Editar'
-                    primaryTypographyProps={{
-                      variant: "body2",
-                      fontWeight: 700,
-                    }}
+                    // primaryTypographyProps={{
+                    //   variant: "body2",
+                    //   fontWeight: 700,
+                    // }}
                   />
                 </MenuItem>
 
@@ -193,10 +193,10 @@ const SalonCard = ({ salon, handleAbrirEditor, handleDeleteSalon, index }) => {
                   </ListItemIcon>
                   <ListItemText
                     primary='Eliminar'
-                    primaryTypographyProps={{
-                      variant: "body2",
-                      fontWeight: 700,
-                    }}
+                    // primaryTypographyProps={{
+                    //   variant: "body2",
+                    //   fontWeight: 700,
+                    // }}
                   />
                 </MenuItem>
               </Menu>

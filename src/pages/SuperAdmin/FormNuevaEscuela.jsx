@@ -16,10 +16,13 @@ import { motion } from "framer-motion";
 import { escuelasService } from "../../api/schools";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import { useSuperAdmin } from "../../context/SuperAdminContext";
 const FormNuevaEscuela = ({ onExito }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { refreshGlobal } = useSuperAdmin();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -50,9 +53,8 @@ const FormNuevaEscuela = ({ onExito }) => {
         "¡Registro Exitoso!",
         `La escuela "${datos.name}" ha sido creada. Se envió un correo a ${datos.emailAdmin}.`,
       );
-
       if (onExito) onExito();
-
+      await refreshGlobal();
       // 4. Redirigir (El usuario verá la confirmación de éxito antes de irse)
       setTimeout(() => {
         navigate("/escuelas");

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { GoogleMap, useJsApiLoader, Marker } from "@react-google-maps/api";
 import { Box, CircularProgress, Typography } from "@mui/material";
 
@@ -9,21 +9,36 @@ const containerStyle = {
   marginTop: "15px",
 };
 
-// Coordenadas iniciales (Estado de México aprox)
+// Coordenadas iniciales por defecto (Toluca / Estado de México)
 const centerDefault = {
-  lat: 19.1934,
-  lng: -99.51,
+  lat: 19.2898,
+  lng: -99.57,
 };
 
 const LocationPicker = ({ onLocationSelect }) => {
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY, // REEMPLAZA ESTO
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
     libraries: ["places"],
   });
 
   const [map, setMap] = useState(null);
-  const [position, setPosition] = useState(centerDefault);
+
+  // Inicializamos la posición intentando leer lo que ya esté en memoria local
+  const [position, setPosition] = useState(() => {
+    const savedLocation = localStorage.getItem("locationData");
+    if (savedLocation) {
+      try {
+        const parsed = JSON.parse(savedLocation);
+        if (parsed.lat && parsed.lng) {
+          return { lat: Number(parsed.lat), lng: Number(parsed.lng) };
+        }
+      } catch (e) {
+        console.error("Error leyendo posición inicial en mapa:", e);
+      }
+    }
+    return centerDefault;
+  });
 
   const onLoad = useCallback(function callback(mapInstance) {
     setMap(mapInstance);
@@ -33,19 +48,20 @@ const LocationPicker = ({ onLocationSelect }) => {
   const handleMarkerDragEnd = (e) => {
     const lat = e.latLng.lat();
     const lng = e.latLng.lng();
+
+    // Seteamos la posición local numéricamente limpia
     setPosition({ lat, lng });
 
     // Invocamos el Geocoder para obtener la dirección textual
     const geocoder = new window.google.maps.Geocoder();
     geocoder.geocode({ location: { lat, lng } }, (results, status) => {
-      if (status === "OK") {
-        if (results[0]) {
-          onLocationSelect({
-            address: results[0].formatted_address,
-            lat,
-            lng,
-          });
-        }
+      if (status === "OK" && results[0]) {
+        // Emitimos al componente padre asegurando el tipado numérico
+        onLocationSelect({
+          address: results[0].formatted_address,
+          lat: Number(lat),
+          lng: Number(lng),
+        });
       }
     });
   };
@@ -54,8 +70,12 @@ const LocationPicker = ({ onLocationSelect }) => {
 
   return (
     <Box sx={{ width: "100%" }}>
-      <Typography variant='body2' color='textSecondary' sx={{ mb: 1 }}>
-        Arrastra el marcador hasta la ubicación exacta de tu academia:
+      <Typography
+        variant='body2'
+        color='textSecondary'
+        sx={{ mb: 1, fontWeight: 500 }}
+      >
+        Arrastra el marcador rosa hasta la ubicación exacta de tu academia:
       </Typography>
 
       <GoogleMap
@@ -67,7 +87,21 @@ const LocationPicker = ({ onLocationSelect }) => {
           disableDefaultUI: true,
           zoomControl: true,
           styles: [
-            /* Aquí puedes pegar un estilo rosa/pastel luego */
+            // Estilo ultra-limpio y suave (ideal para estética premium/estilistas)
+            {
+              featureType: "administrative",
+              elementType: "geometry",
+              stylers: [{ visibility: "off" }],
+            },
+            {
+              featureType: "poi",
+              stylers: [{ visibility: "simplified" }],
+            },
+            {
+              featureType: "road",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#757575" }],
+            },
           ],
         }}
       >

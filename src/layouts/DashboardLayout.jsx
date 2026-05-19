@@ -157,9 +157,9 @@ const DashboardLayout = () => {
             </ListItemIcon>
             <ListItemText
               primary={item.label}
-              primaryTypographyProps={{
-                fontWeight: location.pathname === item.path ? 700 : 500,
-              }}
+              // primaryTypographyProps={{
+              //   fontWeight: location.pathname === item.path ? 700 : 500,
+              // }}
             />
           </StyledNavItem>
         ))}

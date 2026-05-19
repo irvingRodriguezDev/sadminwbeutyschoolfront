@@ -8,7 +8,6 @@ const premiumConfig = {
   confirmButtonColor: "#f06292", // Tu rosa principal
   cancelButtonColor: "#cfd8dc",
   reverseButtons: true,
-  borderRadius: "1.5rem",
   customClass: {
     popup: "premium-swal-popup",
     title: "premium-swal-title",

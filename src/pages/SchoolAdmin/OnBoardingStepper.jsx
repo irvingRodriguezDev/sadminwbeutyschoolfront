@@ -8,10 +8,11 @@ import {
   Typography,
   Paper,
   CircularProgress,
-  Alert,
+  Divider,
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
+import CloudUploadRoundedIcon from "@mui/icons-material/CloudUploadRounded";
 import { alerts } from "../../utils/alerts";
 import { supabase } from "../../config/supabaseClient";
 import LocationPicker from "./LocationPiker";
@@ -23,76 +24,83 @@ const steps = [
 ];
 
 const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
-  const [activeStep, setActiveStep] = useState(0);
-  const [logo, setLogo] = useState(null);
+  // Intentamos recuperar el paso guardado por si Stripe recarga la app completa
+  const [activeStep, setActiveStep] = useState(() => {
+    const savedStep = localStorage.getItem("onboarding_step");
+    return savedStep ? parseInt(savedStep, 10) : 0;
+  });
+
+  const logoUrlOnLocal = localStorage.getItem("logourl");
+  const [logoUrl, setLogoUrl] = useState(logoUrlOnLocal || "");
+  const [isSubiendoLogo, setIsSubiendoLogo] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [stripeConnected, setStripeConnected] = useState(false);
+
+  // Estado temporal de Stripe en memoria local del asistente
+  const [stripeConnected, setStripeConnected] = useState(() => {
+    return localStorage.getItem("stripe_connected_local") === "true";
+  });
+
   const [locationData, setLocationData] = useState(() => {
     const savedLocation = localStorage.getItem("locationData");
-
-    // Si existe en el storage, lo parseamos de string a objeto
     if (savedLocation) {
       try {
         return JSON.parse(savedLocation);
       } catch (e) {
-        console.error("Error al parsear ubicación de localStorage", e);
+        console.error(e);
       }
     }
-
-    // Si no hay nada o hay error, valor por defecto
-    return {
-      address: "",
-      lat: null,
-      lng: null,
-    };
+    return { address: "", lat: null, lng: null };
   });
-  if (locationData.address !== "") {
-    localStorage.setItem("locationData", JSON.stringify(locationData));
-  }
-  // 1. Detectar el regreso de Stripe mediante la URL
+
+  // Guardar el paso actual en almacenamiento local para mitigar la redirección de Stripe
+  useEffect(() => {
+    localStorage.setItem("onboarding_step", activeStep.toString());
+  }, [activeStep]);
+
+  useEffect(() => {
+    if (locationData.address !== "") {
+      localStorage.setItem("locationData", JSON.stringify(locationData));
+    }
+  }, [locationData]);
+
+  // Detectar regreso de Stripe
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const success = queryParams.get("success");
     const accountId = queryParams.get("account_id");
 
     if (success === "true" && accountId) {
+      // 1. Guardamos localmente que Stripe se conectó SIN tocar la base de datos global aún
       setStripeConnected(true);
-      setActiveStep(1); // Asegurarnos de que esté en el paso de pagos
+      localStorage.setItem("stripe_connected_local", "true");
+      localStorage.setItem("temp_stripe_account_id", accountId);
 
-      // Limpiamos la URL para que no se quede el query string
+      setActiveStep(1); // Lo mantenemos firmemente en el paso de pagos
+
+      // Limpiamos la URL de forma limpia
       window.history.replaceState({}, document.title, window.location.pathname);
 
       alerts.success(
         "Cuenta Vinculada",
-        "Stripe se ha configurado correctamente.",
+        "Stripe se ha configurado correctamente en este asistente. Por favor, continúa al siguiente paso.",
       );
-
-      // Actualizamos inmediatamente en la DB que el onboarding de stripe terminó
-      actualizarEstadoStripe(accountId);
     }
   }, []);
 
-  const actualizarEstadoStripe = async (accountId) => {
-    await supabase
-      .from("schools")
-      .update({
-        stripe_account_id: accountId,
-        stripe_onboarding_complete: true,
-      })
-      .eq("id", schoolId);
-  };
+  const handleLogoChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  const uploadLogoProcess = async () => {
-    if (!logo) return null;
+    setIsSubiendoLogo(true);
     try {
-      const fileExt = logo.name.split(".").pop();
+      const fileExt = file.name.split(".").pop();
       const fileName = `logo-${Date.now()}.${fileExt}`;
       const filePath = `${schoolId}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from("school-logos")
-        .upload(filePath, logo);
+        .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
@@ -100,10 +108,15 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
         data: { publicUrl },
       } = supabase.storage.from("school-logos").getPublicUrl(filePath);
 
-      return publicUrl;
+      setLogoUrl(publicUrl);
+      localStorage.setItem("logourl", publicUrl);
+
+      alerts.success("Imagen Lista", "El logo se ha cargado correctamente.");
     } catch (error) {
-      console.error("Error subiendo logo:", error.message);
-      return null;
+      console.error(error);
+      alerts.error("Error", "No se pudo cargar el logo.");
+    } finally {
+      setIsSubiendoLogo(false);
     }
   };
 
@@ -114,36 +127,32 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
         data: { user },
       } = await supabase.auth.getUser();
 
-      // Invocamos la Edge Function que creamos
+      // Antes de irnos a Stripe, guardamos que estamos en el paso 1
+      localStorage.setItem("onboarding_step", "1");
+
       const { data, error } = await supabase.functions.invoke(
         "stripe-connect",
         {
-          body: {
-            schoolId,
-            schoolName,
-            email: user.email,
-          },
+          body: { schoolId, schoolName, email: user.email },
         },
       );
 
       if (error) throw error;
-      if (data?.url) {
-        window.location.href = data.url;
-      }
+      if (data?.url) window.location.href = data.url;
     } catch (error) {
       alerts.error("Error", "No se pudo iniciar la conexión con Stripe.");
-      console.error(error);
     } finally {
       setIsConnecting(false);
     }
   };
 
   const handleNext = async () => {
+    if (activeStep === 0 && !logoUrl) {
+      alerts.error("Campo requerido", "Por favor sube el logo de la academia.");
+      return;
+    }
     if (activeStep === 1 && !stripeConnected) {
-      alerts.error(
-        "Paso requerido",
-        "Debes vincular tu cuenta de Stripe para continuar.",
-      );
+      alerts.error("Paso requerido", "Debes vincular tu cuenta de Stripe.");
       return;
     }
 
@@ -154,18 +163,20 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
     }
   };
 
+  // EL CAMBIO RADICAL: Aquí se guarda TODO junto al final, garantizando consistencia
   const finalizarConfiguracion = async () => {
     setIsSaving(true);
     try {
-      const logoUrl = await uploadLogoProcess();
+      const tempAccountId = localStorage.getItem("temp_stripe_account_id");
+
       const updates = {
         address: locationData.address,
-        location: `POINT(${locationData.lat} ${locationData.lng})`,
+        location: `POINT(${locationData.lng} ${locationData.lat})`,
         logo_url: logoUrl,
+        stripe_account_id: tempAccountId || null, // Se inyecta aquí de manera segura
+        stripe_onboarding_complete: tempAccountId ? true : false,
         updated_at: new Date(),
       };
-
-      if (logoUrl) updates.logo_url = logoUrl;
 
       const { error } = await supabase
         .from("schools")
@@ -175,8 +186,15 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
       if (error) throw error;
 
       alerts.success("¡Configuración Exitosa!", "Tu academia está lista.");
+
+      // LIMPIEZA ABSOLUTA DE MEMORIA LOCAL
       localStorage.removeItem("locationData");
-      onComplete();
+      localStorage.removeItem("logourl");
+      localStorage.removeItem("onboarding_step");
+      localStorage.removeItem("stripe_connected_local");
+      localStorage.removeItem("temp_stripe_account_id");
+
+      onComplete(); // Notifica al componente superior que el flujo completo fue exitoso
     } catch (error) {
       alerts.error("Error", error.message);
     } finally {
@@ -185,11 +203,11 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
   };
 
   return (
-    <Box sx={{ width: "100%", mt: 4 }}>
+    <Box sx={{ width: "100%", mt: 2 }}>
       <Stepper activeStep={activeStep} alternativeLabel>
         {steps.map((label) => (
           <Step key={label}>
-            <StepLabel sx={{ "& .MuiStepLabel-label": { color: "#f06292" } }}>
+            <StepLabel sx={{ "& .MuiStepLabel-label": { fontWeight: 600 } }}>
               {label}
             </StepLabel>
           </Step>
@@ -201,60 +219,112 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
         sx={{
           p: 4,
           mt: 4,
-          borderRadius: 4,
-          bgcolor: "rgba(255,255,255,0.7)",
-          backdropFilter: "blur(10px)",
-          border: "1px solid rgba(240, 98, 146, 0.2)",
+          borderRadius: "16px",
+          border: "1px solid rgba(240, 98, 146, 0.15)",
+          bgcolor: "#fff",
+          display: "flex",
+          flexDirection: "column",
+          gap: 3,
         }}
       >
+        {/* PASO 0: IDENTIDAD */}
         {activeStep === 0 && (
-          <Box sx={{ textAlign: "center", py: 2 }}>
-            <Typography variant='h6' mb={1} fontWeight='bold'>
-              Identidad Visual
-            </Typography>
-            <Typography variant='body2' color='textSecondary' mb={3}>
-              Sube el logo de tu academia para personalizar tus cursos.
-            </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 3,
+              alignItems: "center",
+              textAlign: "center",
+            }}
+          >
+            <Box>
+              <Typography
+                variant='h6'
+                sx={{ fontWeight: 800, color: "#1a1a1a" }}
+              >
+                Identidad Visual
+              </Typography>
+              <Typography variant='body2' color='text.secondary'>
+                Sube el logo oficial de tu plantel para la emisión de
+                certificados.
+              </Typography>
+            </Box>
+
             <Button
               variant='outlined'
               component='label'
-              sx={{ color: "#f06292", borderColor: "#f06292" }}
+              disabled={isSubiendoLogo}
+              startIcon={
+                isSubiendoLogo ? (
+                  <CircularProgress size={16} color='inherit' />
+                ) : (
+                  <CloudUploadRoundedIcon />
+                )
+              }
+              sx={{
+                color: "#d81b60",
+                borderColor: "rgba(240, 98, 146, 0.5)",
+                textTransform: "none",
+                fontWeight: 700,
+                borderRadius: "10px",
+                px: 3,
+              }}
             >
-              {logo ? "Cambiar Logo" : "Seleccionar Logo"}
+              {isSubiendoLogo
+                ? "Subiendo..."
+                : logoUrl
+                  ? "Cambiar Logo"
+                  : "Seleccionar Imagen"}
               <input
                 type='file'
                 hidden
                 accept='image/*'
-                onChange={(e) => setLogo(e.target.files[0])}
+                onChange={handleLogoChange}
               />
             </Button>
-            {logo && (
+
+            {logoUrl && (
               <Typography
                 variant='caption'
-                display='block'
-                mt={2}
-                color='primary'
+                sx={{
+                  color: "#2e7d32",
+                  fontWeight: 700,
+                  bgcolor: "rgba(46,125,50,0.06)",
+                  px: 2,
+                  py: 0.5,
+                  borderRadius: "20px",
+                }}
               >
-                ✓ {logo.name}
+                ✓ Logo cargado en el servidor con éxito
               </Typography>
             )}
-            <Box>
-              {/* Componente del Logo que ya tenías */}
-              <Typography variant='h6' sx={{ mt: 3, fontWeight: "bold" }}>
-                Dirección de la Academia
+
+            <Divider
+              sx={{ width: "100%", borderColor: "rgba(0,0,0,0.05)", my: 1 }}
+            />
+
+            <Box
+              sx={{
+                width: "100%",
+                display: "flex",
+                flexDirection: "column",
+                gap: 1,
+              }}
+            >
+              <Typography
+                variant='h6'
+                sx={{ fontWeight: 800, color: "#1a1a1a" }}
+              >
+                Dirección Geográfica
               </Typography>
-
               <LocationPicker
-                onLocationSelect={(data) => {
-                  setLocationData(data);
-                  console.log("Ubicación capturada:", data);
-                }}
+                onLocationSelect={(data) => setLocationData(data)}
               />
-
               {locationData.address && (
                 <Typography
-                  variant='caption'
-                  sx={{ mt: 1, display: "block", color: "#f06292" }}
+                  variant='body2'
+                  sx={{ color: "#d81b60", fontWeight: 600, mt: 1 }}
                 >
                   📍 {locationData.address}
                 </Typography>
@@ -263,99 +333,146 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
           </Box>
         )}
 
+        {/* PASO 1: STRIPE */}
         {activeStep === 1 && (
-          <Box sx={{ textAlign: "center" }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              textAlign: "center",
+              gap: 2,
+              py: 2,
+            }}
+          >
             {!stripeConnected ? (
               <>
-                <AccountBalanceIcon
-                  sx={{ fontSize: 60, color: "#F06292", mb: 2 }}
-                />
-                <Typography variant='h6' mb={1} fontWeight='bold'>
-                  Pagos con Stripe
+                <AccountBalanceIcon sx={{ fontSize: 50, color: "#f06292" }} />
+                <Typography
+                  variant='h6'
+                  sx={{ fontWeight: 800, color: "#1a1a1a" }}
+                >
+                  Pasarela de Pagos Stripe
                 </Typography>
-                <Typography variant='body2' color='textSecondary' mb={3}>
-                  Para recibir los pagos de tus alumnas, necesitamos conectar tu
-                  cuenta bancaria a través de Stripe Express.
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ maxWidth: 450 }}
+                >
+                  Vincula tu cuenta para automatizar las inscripciones y recibir
+                  tus liquidaciones directo a tu banco.
                 </Typography>
                 <Button
                   variant='contained'
                   onClick={handleStripeConnect}
                   disabled={isConnecting}
+                  disableElevation
                   sx={{
-                    bgcolor: "#F06292",
-                    "&:hover": { bgcolor: "#F06292" },
+                    bgcolor: "#d81b60",
                     borderRadius: "10px",
                     px: 4,
+                    fontWeight: 700,
+                    textTransform: "none",
+                    "&:hover": { bgcolor: "#1a1a1a" },
                   }}
                 >
                   {isConnecting ? (
-                    <CircularProgress size={24} color='inherit' />
+                    <CircularProgress size={22} color='inherit' />
                   ) : (
-                    "Vincular mi cuenta"
+                    "Conectar cuenta bancaria"
                   )}
                 </Button>
               </>
             ) : (
-              <Box>
-                <CheckCircleIcon
-                  sx={{ fontSize: 60, color: "#4caf50", mb: 2 }}
-                />
-                <Typography variant='h6' color='#4caf50' fontWeight='bold'>
-                  ¡Cuenta Conectada!
+              <>
+                <CheckCircleIcon sx={{ fontSize: 55, color: "#2e7d32" }} />
+                <Typography
+                  variant='h6'
+                  sx={{ fontWeight: 800, color: "#2e7d32" }}
+                >
+                  ¡Terminal de Pagos Lista!
                 </Typography>
-                <Typography variant='body2' mt={1}>
-                  Stripe ha verificado tu conexión exitosamente.
+                <Typography variant='body2' color='text.secondary'>
+                  Stripe Express se ha conectado de forma transparente a tu
+                  academia.
                 </Typography>
-              </Box>
+              </>
             )}
           </Box>
         )}
 
+        {/* PASO 2: CONFIRMACIÓN */}
         {activeStep === 2 && (
-          <Box sx={{ textAlign: "center" }}>
-            <Typography variant='h6' mb={2} fontWeight='bold'>
-              Confirmación Final
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              textAlign: "center",
+              gap: 1,
+              py: 3,
+            }}
+          >
+            <Typography variant='h6' sx={{ fontWeight: 800, color: "#1a1a1a" }}>
+              ¡Todo Listo para el Lanzamiento!
             </Typography>
-            <Typography variant='body1'>
-              Tu academia ya tiene logo y sistema de pagos activado. ¡Es hora de
-              empezar!
+            <Typography
+              variant='body2'
+              color='text.secondary'
+              sx={{ maxWidth: 400 }}
+            >
+              La identidad corporativa, coordenadas de mapas y pasarela bancaria
+              se han unificado correctamente.
             </Typography>
           </Box>
         )}
 
+        {/* BOTONES DE CONTROL DE NAVEGACIÓN */}
         <Box
           sx={{
             display: "flex",
             justifyContent: "flex-end",
-            mt: 4,
+            gap: 1,
             pt: 2,
             borderTop: "1px solid rgba(0,0,0,0.05)",
+            mt: "auto",
           }}
         >
           <Button
             disabled={activeStep === 0 || isSaving}
             onClick={() => setActiveStep((prev) => prev - 1)}
-            sx={{ mr: 1 }}
+            sx={{
+              fontWeight: 700,
+              textTransform: "none",
+              color: "text.secondary",
+            }}
           >
             Atrás
           </Button>
           <Button
             variant='contained'
             onClick={handleNext}
-            disabled={isSaving || (activeStep === 1 && !stripeConnected)}
+            disabled={
+              isSaving ||
+              isSubiendoLogo ||
+              (activeStep === 1 && !stripeConnected)
+            }
+            disableElevation
             sx={{
-              bgcolor: "#f06292",
-              "&:hover": { bgcolor: "#d81b60" },
+              bgcolor: "#d81b60",
+              fontWeight: 700,
+              textTransform: "none",
               borderRadius: "10px",
               px: 4,
+              "&:hover": { bgcolor: "#1a1a1a" },
             }}
           >
             {isSaving ? (
-              <CircularProgress size={24} color='inherit' />
+              <CircularProgress size={22} color='inherit' />
             ) : activeStep === steps.length - 1 ? (
-              "Finalizar"
+              "Concluir Registro"
             ) : (
-              "Siguiente"
+              "Continuar"
             )}
           </Button>
         </Box>
