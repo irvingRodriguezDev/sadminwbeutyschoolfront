@@ -9,6 +9,8 @@ import { SchoolProvider } from "./context/SchoolContext.jsx";
 import { CursoProvider } from "./context/CursoContext.jsx";
 import { SuperAdminProvider } from "./context/SuperAdminContext.jsx";
 import { AdminSchoolProvider } from "./context/AdminSchoolContext.jsx";
+import { InscriptionsProvider } from "./context/InscriptionsContext.jsx";
+import { StudentsProvider } from "./context/StudentsContext.jsx";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <ThemeProvider theme={premiumTheme}>
@@ -18,7 +20,11 @@ createRoot(document.getElementById("root")).render(
           <AdminSchoolProvider>
             <SchoolProvider>
               <CursoProvider>
-                <App />
+                <StudentsProvider>
+                  <InscriptionsProvider>
+                    <App />
+                  </InscriptionsProvider>
+                </StudentsProvider>
               </CursoProvider>
             </SchoolProvider>
           </AdminSchoolProvider>

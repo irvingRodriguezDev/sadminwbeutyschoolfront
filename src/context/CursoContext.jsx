@@ -25,7 +25,7 @@ export const CursoProvider = ({ children }) => {
         .select(
           `
           *,
-          salon:salones(nombre) 
+          salon:salones(nombre,capacidad) 
         `,
         ) // Traemos el nombre del salón asociado
         .eq("school_id", profile.school_id)
