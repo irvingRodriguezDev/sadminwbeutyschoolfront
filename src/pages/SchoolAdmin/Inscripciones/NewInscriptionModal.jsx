@@ -1,39 +1,31 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Box,
-  Typography,
-  TextField,
   Button,
-  MenuItem,
   Grid,
   Divider,
   Alert,
-  CircularProgress,
-  InputAdornment,
+  Container,
+  Typography,
+  Paper,
   Stack,
-  Autocomplete,
 } from "@mui/material";
-import {
-  Person as PersonIcon,
-  WhatsApp as PhoneIcon,
-  Email as EmailIcon,
-  Class as CourseIcon,
-  PointOfSale as PaymentIcon,
-} from "@mui/icons-material";
 import { supabase } from "../../../config/supabaseClient";
 import { useCursos } from "../../../context/CursoContext";
-import { FormatCurrency } from "../../../utils/FormatCurrency";
 import { useInscriptions } from "../../../context/InscriptionsContext";
-import { useStudents } from "../../../context/StudentsContext";
+import SelectCourse from "../../../components/common/inscriptions/NewInscriptions/SelectCourse";
+import StudentData from "../../../components/common/inscriptions/NewInscriptions/StudentData";
+import PaymentInformation from "../../../components/common/inscriptions/NewInscriptions/PaymentInformation";
+import { useNavigate, useParams } from "react-router-dom";
+import { alerts } from "../../../utils/alerts";
 
-const NewInscriptionModal = ({ open, onClose, schoolId, onSaveSuccess }) => {
+const NewInscription = ({}) => {
+  const params = useParams();
+  const navigate = useNavigate();
+  const { schoolId } = params;
+
   // Estados de carga y catálogo
   const { createAdministrativeInscription } = useInscriptions();
-  const { students, fetchStudents } = useStudents();
   const { cursos } = useCursos();
   const [loadingCourses, setLoadingCourses] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -41,21 +33,15 @@ const NewInscriptionModal = ({ open, onClose, schoolId, onSaveSuccess }) => {
   const [isNewStudent, setIsNewStudent] = useState(true);
   // Campos del Formulario
   const [selectedCourse, setSelectedCourse] = useState(null);
+  const [studentId, setStudentId] = useState(null);
   const [formData, setFormData] = useState({
     course_id: "",
-    student_id: null, // Para vincular con un estudiante existente si se encuentra por teléfono
-    student_name: "",
-    student_phone: "",
-    student_email: "",
+    student_id: studentId, // Para vincular con un estudiante existente si se encuentra por teléfono
     payment_amount: 0,
     payment_method: "cash", // 'cash' o 'card_terminal'
     notes: "",
   });
-  useEffect(() => {
-    if (open && schoolId) {
-      fetchStudents(schoolId);
-    }
-  }, [open, schoolId]);
+
   // Estado de disponibilidad del salón
   const [availability, setAvailability] = useState({
     total_enrolled: 0,
@@ -120,10 +106,7 @@ const NewInscriptionModal = ({ open, onClose, schoolId, onSaveSuccess }) => {
     }
 
     const studentData = {
-      name: formData.name,
-      phone: formData.phone,
-      email: formData.email || null,
-      schoolId: schoolId,
+      studentId: studentId,
     };
     const inscriptionPayload = {
       course_id: formData.course_id,
@@ -147,16 +130,15 @@ const NewInscriptionModal = ({ open, onClose, schoolId, onSaveSuccess }) => {
     );
 
     if (result.success) {
-      onClose(); // Se cierra de manera limpia y la tabla de fondo ya se actualizó sola.
+      alerts.success("La suscripcion se ha creado de manera exitosa");
+      navigate(-1); // Se cierra de manera limpia y la tabla de fondo ya se actualizó sola.
     }
   };
 
   const handleClose = () => {
     setFormData({
       course_id: "",
-      student_name: "",
-      student_phone: "",
-      student_email: "",
+      student_id: null,
       payment_amount: 0,
       payment_method: "cash",
       notes: "",
@@ -164,301 +146,142 @@ const NewInscriptionModal = ({ open, onClose, schoolId, onSaveSuccess }) => {
     setSelectedCourse(null);
     setAvailability({ total_enrolled: 0, capacity: 0, slots_left: 0 });
     setError(null);
-    onClose();
+    navigate(-1);
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      maxWidth='md'
-      fullWidth
-      sx={{ "& .MuiDialog-paper": { borderRadius: "16px" } }}
-    >
-      <DialogTitle
+    <Container maxWidth='md' sx={{ py: 4 }}>
+      {/* 🌸 ENCABEZADO DE LA PÁGINA */}
+      <Box sx={{ mb: 4 }}>
+        <Typography
+          variant='h4'
+          sx={{
+            fontWeight: 900,
+            color: "#E2208C",
+            mb: 1,
+          }}
+        >
+          ✨ Registrar Nueva Inscripción Manual
+        </Typography>
+        <Typography variant='body2' color='textSecondary'>
+          Completa los bloques informativos para dar de alta y procesar el pago
+          de la alumna.
+        </Typography>
+      </Box>
+
+      {/* 📄 CONTENEDOR PRINCIPAL DEL FORMULARIO */}
+      <Paper
+        component='form'
+        onSubmit={handleSubmit}
+        elevation={0}
         sx={{
-          fontWeight: 900,
-          fontFamily: "'Playfair Display', serif",
-          pt: 3,
-          bgcolor: "#F06292",
+          p: { xs: 3, md: 4 },
+          borderRadius: "16px",
+          backgroundColor: "#FFF9FA",
+          border: "1px solid #F9C4D9",
         }}
       >
-        ✨ Registrar Nueva Inscripción Manual
-      </DialogTitle>
+        {error && (
+          <Alert severity='error' sx={{ mb: 3, borderRadius: "12px" }}>
+            {error}
+          </Alert>
+        )}
 
-      <Box component='form' onSubmit={handleSubmit}>
-        <DialogContent dividers sx={{ backgroundColor: "#FFF9FA" }}>
-          {error && (
-            <Alert severity='error' sx={{ mb: 3, borderRadius: "12px" }}>
-              {error}
-            </Alert>
-          )}
-
-          <Grid container spacing={3}>
-            {/* SECCIÓN 1: Selección del Curso y Validación de Salón */}
-            <Grid size={12}>
-              <Typography
-                variant='subtitle2'
-                sx={{ fontWeight: 700, mb: 1, color: "#2D2D2D" }}
-              >
-                1. SELECCIÓN DE CURSO / MASTERCLASS
-              </Typography>
-              <TextField
-                select
-                fullWidth
-                label='Seleccionar Curso Disponible'
-                value={formData.course_id}
-                onChange={(e) => handleCourseChange(e.target.value)}
-                disabled={loadingCourses}
-                required
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <CourseIcon sx={{ color: "#f06292", mr: 1 }} />
-                    ),
-                  },
-                }}
-              >
-                {loadingCourses ? (
-                  <MenuItem disabled>
-                    <CircularProgress size={20} />
-                  </MenuItem>
-                ) : (
-                  cursos.map((c) => (
-                    <MenuItem key={c.id} value={c.id}>
-                      <strong>{c.tipo_curso}</strong> - <em>{c.titulo}</em> — (
-                      {FormatCurrency(c.costo)} MXN)
-                    </MenuItem>
-                  ))
-                )}
-              </TextField>
-
-              {/* Banner Informativo del Cupo del Salón asignado */}
-              {selectedCourse && (
-                <Box
-                  sx={{
-                    mt: 2,
-                    p: 2,
-                    bgcolor: "#fff",
-                    borderRadius: "16px",
-                    border: "1px solid rgba(240, 98, 146, 0.2)",
-                  }}
-                >
-                  <Stack
-                    direction='row'
-                    sx={{
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      flexWrap: "wrap",
-                    }}
-                    spacing={2}
-                    useFlexGap
-                  >
-                    <Typography variant='body2' color='textSecondary'>
-                      📍 Salón:{" "}
-                      <strong>
-                        {selectedCourse.salon?.nombre || "Sin asignar"}
-                      </strong>
-                    </Typography>
-                    <Typography variant='body2' color='textSecondary'>
-                      👥 Capacidad:{" "}
-                      <strong>{availability.capacity} lugares</strong>
-                    </Typography>
-                    <Typography
-                      variant='body2'
-                      sx={{
-                        fontWeight: 700,
-                        color:
-                          availability.slots_left <= 0
-                            ? "error.main"
-                            : "success.main",
-                      }}
-                    >
-                      🎟️ Disponibles: {availability.slots_left} lugares
-                    </Typography>
-                  </Stack>
-                </Box>
-              )}
-            </Grid>
-
-            {/* SECCIÓN 2: Datos del Alumno */}
-            <Grid size={12}>
-              <Divider sx={{ my: 1 }} />
-            </Grid>
-            <Grid size={12}>
-              <Typography
-                variant='subtitle2'
-                sx={{ fontWeight: 700, mb: 1, color: "#2D2D2D" }}
-              >
-                2. DATOS DEL ESTUDIANTE
-              </Typography>
-            </Grid>
-
-            {/* 🔍 BUSCADOR INTELIGENTE */}
-            <Grid size={12}>
-              <Autocomplete
-                options={students}
-                getOptionLabel={(option) => `${option.name} (${option.phone})`}
-                onChange={(event, newValue) => {
-                  if (newValue) {
-                    // 🏢 Alumna Existente Seleccionada
-                    setIsNewStudent(false);
-                    setFormData({
-                      id: newValue.id,
-                      name: newValue.name,
-                      phone: newValue.phone,
-                      email: newValue.email || "",
-                    });
-                  } else {
-                    // Si borran el buscador, se resetea a nueva alumna
-                    setIsNewStudent(true);
-                    setFormData({ id: null, name: "", phone: "", email: "" });
-                  }
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label='🔍 Buscar Alumna (Nombre o Teléfono)'
-                    variant='outlined'
-                    helperText='Escribe para buscar. Si no aparece, llena los datos de abajo para registrarla como nueva.'
-                  />
-                )}
-                sx={{ mb: 2 }}
-              />
-            </Grid>
-
-            {/* CAMPO: NOMBRE */}
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                fullWidth
-                label='Nombre de la Alumna'
-                disabled={!isNewStudent} // 🔒 Bloqueado si ya existe
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                required
-              />
-            </Grid>
-
-            {/* CAMPO: TELÉFONO */}
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                fullWidth
-                label='WhatsApp / Teléfono'
-                disabled={!isNewStudent} // 🔒 Bloqueado si ya existe
-                value={formData.phone}
-                onChange={(e) =>
-                  setFormData({ ...formData, phone: e.target.value })
-                }
-                required
-              />
-            </Grid>
-
-            {/* CAMPO: CORREO */}
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                fullWidth
-                label='Correo Electrónico (Opcional)'
-                disabled={!isNewStudent} // 🔒 Bloqueado si ya existe
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-              />
-            </Grid>
-
-            {/* SECCIÓN 3: Gestión de Caja / Finanzas Manuales */}
-            <Grid size={12}>
-              <Divider sx={{ my: 1 }} />
-            </Grid>
-            <Grid size={12}>
-              <Typography
-                variant='subtitle2'
-                sx={{ fontWeight: 700, mb: 1, color: "#2D2D2D" }}
-              >
-                3. REGISTRO DE PAGO EN CAJA RECEPCIÓN
-              </Typography>
-            </Grid>
-
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                fullWidth
-                type='number'
-                label='Monto Recibido en este acto'
-                value={formData.payment_amount}
-                onChange={(e) =>
-                  setFormData({ ...formData, payment_amount: e.target.value })
-                }
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position='start'>$</InputAdornment>
-                    ),
-                    endAdornment: <PaymentIcon sx={{ color: "#f06292" }} />,
-                  },
-                }}
-              />
-            </Grid>
-
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                select
-                fullWidth
-                label='Método de Cobro Físico'
-                value={formData.payment_method}
-                onChange={(e) =>
-                  setFormData({ ...formData, payment_method: e.target.value })
-                }
-              >
-                <MenuItem value='cash'>💵 Efectivo (Caja Chica)</MenuItem>
-                <MenuItem value='card_terminal'>
-                  💳 Terminal Bancaria del Plantel
-                </MenuItem>
-              </TextField>
-            </Grid>
-
-            <Grid size={12}>
-              <TextField
-                fullWidth
-                multiline
-                rows={2}
-                label='Notas internas del cobro'
-                placeholder='Ej. Liquidó en efectivo con billetes de $500, entregó comprobante...'
-                value={formData.notes}
-                onChange={(e) =>
-                  setFormData({ ...formData, notes: e.target.value })
-                }
-              />
-            </Grid>
+        <Grid container spacing={3}>
+          {/* SECCIÓN 1: Selección del Curso y Validación de Salón */}
+          <Grid size={12}>
+            <Typography
+              variant='subtitle1'
+              sx={{ fontWeight: 800, color: "#BE3C77", mb: 1 }}
+            >
+              1. Selección de Curso y Horarios
+            </Typography>
           </Grid>
-        </DialogContent>
 
-        <DialogActions sx={{ p: 3, backgroundColor: "#FFF9FA" }}>
-          <Button onClick={handleClose} sx={{ color: "#777", fontWeight: 700 }}>
-            Cancelar
-          </Button>
-          <Button
-            type='submit'
-            variant='contained'
-            disabled={
-              submitting || (selectedCourse && availability.slots_left <= 0)
-            }
-            sx={{
-              background: "linear-gradient(90deg, #E2208C 0%, #F06292 100%)",
-              borderRadius: "12px",
-              px: 4,
-              py: 1.2,
-              fontWeight: 700,
-              textTransform: "none",
-            }}
+          <SelectCourse
+            handleCourseChange={handleCourseChange}
+            formData={formData}
+            loadingCourses={loadingCourses}
+            setSelectedCourse={setSelectedCourse}
+            cursos={cursos}
+            selectedCourse={selectedCourse}
+            availability={availability}
+          />
+
+          {/* SECCIÓN 2: Datos del Alumno */}
+          <Grid size={12}>
+            <Divider sx={{ my: 1.5 }} />
+            <Typography
+              variant='subtitle1'
+              sx={{ fontWeight: 800, color: "#BE3C77", mb: 1 }}
+            >
+              2. Información de la Alumna
+            </Typography>
+          </Grid>
+
+          <StudentData
+            formData={formData}
+            setFormData={setFormData}
+            isNewStudent={isNewStudent}
+            setIsNewStudent={setIsNewStudent}
+            schoolId={schoolId}
+            setStudentId={setStudentId}
+          />
+
+          {/* SECCIÓN 3: Gestión de Caja / Finanzas Manuales */}
+          <Grid size={12}>
+            <Divider sx={{ my: 1.5 }} />
+            <Typography
+              variant='subtitle1'
+              sx={{ fontWeight: 800, color: "#BE3C77", mb: 1 }}
+            >
+              3. Gestión de Caja y Finanzas
+            </Typography>
+          </Grid>
+
+          <PaymentInformation formData={formData} setFormData={setFormData} />
+        </Grid>
+
+        {/* 🔘 BOTONERA DE ACCIÓN INFERIOR */}
+        <Box sx={{ mt: 4 }}>
+          <Divider sx={{ mb: 3 }} />
+          <Stack
+            direction='row'
+            spacing={2}
+            sx={{ justifyContent: "flex-end" }}
           >
-            {submitting ? "Inscribiendo..." : "Confirmar e Inscribir"}
-          </Button>
-        </DialogActions>
-      </Box>
-    </Dialog>
+            <Button
+              onClick={handleClose}
+              sx={{ color: "#777", fontWeight: 700, px: 3 }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type='submit'
+              variant='contained'
+              disabled={
+                submitting || (selectedCourse && availability.slots_left <= 0)
+              }
+              sx={{
+                background: "linear-gradient(90deg, #E2208C 0%, #F06292 100%)",
+                borderRadius: "12px",
+                px: 5,
+                py: 1.5,
+                fontWeight: 700,
+                textTransform: "none",
+                boxShadow: "0 4px 14px rgba(226, 32, 140, 0.3)",
+                "&:hover": {
+                  boxShadow: "0 6px 20px rgba(226, 32, 140, 0.4)",
+                },
+              }}
+            >
+              {submitting ? "Inscribiendo..." : "Confirmar e Inscribir"}
+            </Button>
+          </Stack>
+        </Box>
+      </Paper>
+    </Container>
   );
 };
 
-export default NewInscriptionModal;
+export default NewInscription;

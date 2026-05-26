@@ -7,15 +7,9 @@ import { useInscriptions } from "../../../context/InscriptionsContext";
 import InscriptionsList from "./InscriptionsList";
 
 const GestionInscripciones = () => {
-  const [openInscriptionModal, setOpenInscriptionModal] = useState(false);
   const { profile } = useAuth(); // Asegúrate de tener el schoolId en el perfil
   const { enrollments, fetchEnrollments, loading } = useInscriptions(); // Traemos las inscripciones del contexto
-  const handleClickNewInscription = () => {
-    setOpenInscriptionModal(true);
-  };
-  const handleCloseInscriptionModal = () => {
-    setOpenInscriptionModal(false);
-  };
+
   useEffect(() => {
     if (profile?.school_id) {
       fetchEnrollments(profile.school_id);
@@ -28,13 +22,17 @@ const GestionInscripciones = () => {
         <Typography variant='h4' fontWeight='bold'>
           Mis Inscripciones
         </Typography>
-        <Button
-          variant='contained'
-          sx={{ bgcolor: "#f06292", borderRadius: 1 }}
-          onClick={handleClickNewInscription}
+        <Link
+          to={`/crear-inscripcion/${profile?.school_id}`}
+          style={{ textDecoration: "none" }}
         >
-          + Nueva Inscripción
-        </Button>
+          <Button
+            variant='contained'
+            sx={{ bgcolor: "#f06292", borderRadius: 1 }}
+          >
+            + Nueva Inscripción
+          </Button>
+        </Link>
       </Box>
       <Grid container spacing={2}>
         <InscriptionsList
@@ -43,11 +41,6 @@ const GestionInscripciones = () => {
           schoolId={profile?.school_id}
         />
       </Grid>
-      <NewInscriptionModal
-        open={openInscriptionModal}
-        onClose={handleCloseInscriptionModal}
-        schoolId={profile?.school_id}
-      />
     </Box>
   );
 };

@@ -32,7 +32,7 @@ const SalonCard = ({ salon, handleAbrirEditor, handleDeleteSalon, index }) => {
   };
 
   return (
-    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 3 }}>
+    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 3 }} key={index}>
       <Box
         component={motion.div}
         initial={{ opacity: 0, y: 15 }}
@@ -71,9 +71,12 @@ const SalonCard = ({ salon, handleAbrirEditor, handleDeleteSalon, index }) => {
           {/* CUERPO DEL ENCABEZADO SUPERIOR */}
           <Stack
             direction='row'
-            justifyContent='space-between'
             // Alineación perfecta de la línea de los iconos
-            sx={{ mb: 3, alignItems: "center" }}
+            sx={{
+              mb: 3,
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
           >
             {/* ICONO + TEXTOS */}
             <Stack
@@ -205,8 +208,8 @@ const SalonCard = ({ salon, handleAbrirEditor, handleDeleteSalon, index }) => {
           {/* SECCIÓN MÉTRIQUES: DISEÑO COMPACTO DE DASHBOARD INDUSTRIAL */}
           <Stack
             direction='row'
-            justifyContent='space-between'
             sx={{
+              justifyContent: "space-between",
               p: 1.8,
               borderRadius: "12px",
               bgcolor: "rgba(0, 0, 0, 0.015)",

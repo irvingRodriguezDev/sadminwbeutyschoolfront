@@ -21,6 +21,7 @@ import LoadingScreen from "./components/common/LoadingScreen";
 import AltaSalon from "./pages/SchoolAdmin/Salones/AltaSalon";
 import AltaCursoStepper from "./pages/SchoolAdmin/Cursos/AltaCurso";
 import GestionInscripciones from "./pages/SchoolAdmin/Inscripciones/GestionInscripciones";
+import NewInscription from "./pages/SchoolAdmin/Inscripciones/NewInscriptionModal";
 function App() {
   const { loading, profile } = useAuth();
 
@@ -50,6 +51,10 @@ function App() {
           <Route path='/crear-curso-nuevo' element={<AltaCursoStepper />} />
 
           <Route path='/inscripciones' element={<GestionInscripciones />} />
+          <Route
+            path='/crear-inscripcion/:schoolId'
+            element={<NewInscription />}
+          />
 
           <Route path='/configuracion' element={<Settings />} />
         </Route>

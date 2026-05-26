@@ -189,10 +189,12 @@ const AltaCursoStepper = () => {
                 label='Costo'
                 type='number'
                 autoComplete='off'
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position='start'>$</InputAdornment>
-                  ),
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position='start'>$</InputAdornment>
+                    ),
+                  },
                 }}
                 value={formData.costo}
                 onChange={(e) =>

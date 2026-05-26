@@ -98,8 +98,10 @@ const FormNuevaEscuela = ({ onExito }) => {
                 name='nombre'
                 label='Nombre de la Escuela'
                 autoComplete='off'
-                InputProps={{
-                  startAdornment: <Business color='primary' sx={{ mr: 1 }} />,
+                slotProps={{
+                  input: {
+                    startAdornment: <Business color='primary' sx={{ mr: 1 }} />,
+                  },
                 }}
               />
             </Grid>
@@ -117,7 +119,7 @@ const FormNuevaEscuela = ({ onExito }) => {
                 label='Email del Administrador'
                 type='email'
                 helperText='Se enviará una invitación para configurar su contraseña.'
-                InputProps={{
+                slotProps={{
                   startAdornment: <Email color='primary' sx={{ mr: 1 }} />,
                 }}
               />

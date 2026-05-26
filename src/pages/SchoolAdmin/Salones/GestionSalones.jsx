@@ -64,6 +64,7 @@ const GestionSalones = () => {
               handleAbrirEditor={handleAbrirEditor}
               handleDeleteSalon={handleDeleteSalon}
               index={salon.id}
+              key={salon.id}
             />
           ))}
           {salones.length === 0 && (

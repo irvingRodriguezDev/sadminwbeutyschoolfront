@@ -22,6 +22,7 @@ import {
 } from "@mui/icons-material";
 import { useInscriptions } from "../../../context/InscriptionsContext";
 import { FormatCurrency } from "../../../utils/FormatCurrency";
+import { alerts } from "../../../utils/alerts";
 
 const COLORS = {
   primary: "#f06292",
@@ -66,7 +67,7 @@ const AddNewPaymentModal = ({ open, onClose, enrollmentData, schoolId }) => {
 
     if (paymentAmount > remainingBalance) {
       setError(
-        `❌ No puedes cobrar de más. El saldo restante máximo a liquidar es de ${formatCurrency(remainingBalance)}.`,
+        `❌ No puedes cobrar de más. El saldo restante máximo a liquidar es de ${FormatCurrency(remainingBalance)}.`,
       );
       return;
     }
@@ -88,6 +89,7 @@ const AddNewPaymentModal = ({ open, onClose, enrollmentData, schoolId }) => {
     );
 
     if (result.success) {
+      alerts.success("El pago se ha registrado exitosamente!");
       handleClose();
     } else {
       // Captura el mensaje personalizado de error devuelto por la EXCEPTION del Trigger de Postgres
@@ -167,8 +169,7 @@ const AddNewPaymentModal = ({ open, onClose, enrollmentData, schoolId }) => {
 
               <Stack
                 direction='row'
-                justifyContent='space-between'
-                sx={{ mt: 1 }}
+                sx={{ mt: 1, justifyContent: "space-between" }}
               >
                 <Typography variant='caption' color='textSecondary'>
                   Total Curso:
@@ -180,7 +181,10 @@ const AddNewPaymentModal = ({ open, onClose, enrollmentData, schoolId }) => {
                   {FormatCurrency(totalAmount)}
                 </Typography>
               </Stack>
-              <Stack direction='row' justifyContent='space-between'>
+              <Stack
+                direction='row'
+                sx={{ mt: 0.5, justifyContent: "space-between" }}
+              >
                 <Typography variant='caption' color='textSecondary'>
                   Abonado a la fecha:
                 </Typography>
@@ -193,8 +197,7 @@ const AddNewPaymentModal = ({ open, onClose, enrollmentData, schoolId }) => {
               </Stack>
               <Stack
                 direction='row'
-                justifyContent='space-between'
-                sx={{ mt: 0.5 }}
+                sx={{ mt: 0.5, justifyContent: "space-between" }}
               >
                 <Typography
                   variant='body2'
@@ -222,12 +225,13 @@ const AddNewPaymentModal = ({ open, onClose, enrollmentData, schoolId }) => {
                 required
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                inputProps={{ min: "1", step: "any" }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position='start'>$</InputAdornment>
-                  ),
-                  endAdornment: <WalletIcon sx={{ color: COLORS.primary }} />,
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position='start'>$</InputAdornment>
+                    ),
+                    endAdornment: <WalletIcon sx={{ color: COLORS.primary }} />,
+                  },
                 }}
                 sx={{
                   "& .MuiOutlinedInput-root": {

@@ -50,8 +50,6 @@ const HistoryPayments = ({ loadingPayments, payments, COLORS }) => {
               }}
             >
               <ListItemText
-                // 🔥 SOLUCIÓN AQUÍ: Forzamos a que el texto secundario use un div semántico en HTML
-                secondaryTypographyProps={{ component: "div" }}
                 primary={
                   <Stack
                     direction='row'
@@ -84,11 +82,18 @@ const HistoryPayments = ({ loadingPayments, payments, COLORS }) => {
                   </Stack>
                 }
                 secondary={
-                  <Box sx={{ mt: 0.5 }}>
+                  // 💥 REEMPLAZO CLAVE: Cambiamos <Box> por un <Stack> y le decimos que renderice como "span"
+                  // Al ser un "span" a nivel HTML, respeta las reglas de no meter bloques dentro de un párrafo <p>
+                  <Stack
+                    component='span'
+                    spacing={0.5}
+                    sx={{ mt: 0.5, display: "block" }}
+                  >
                     <Typography
                       variant='caption'
                       color='textSecondary'
                       display='block'
+                      component='span' // 💡 Evita que este Typography cree otro párrafo interno
                     >
                       📅{" "}
                       {new Date(p.created_at).toLocaleDateString("es-MX", {
@@ -102,17 +107,18 @@ const HistoryPayments = ({ loadingPayments, payments, COLORS }) => {
                     {p.notes && (
                       <Typography
                         variant='caption'
+                        display='block'
+                        component='span' // 💡 Evita que este Typography cree otro párrafo interno
                         sx={{
                           color: "text.primary",
                           fontStyle: "italic",
-                          display: "block",
                           mt: 0.2,
                         }}
                       >
                         "{p.notes}"
                       </Typography>
                     )}
-                  </Box>
+                  </Stack>
                 }
               />
             </ListItem>

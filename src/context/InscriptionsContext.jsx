@@ -93,37 +93,13 @@ export const InscriptionsProvider = ({ children }) => {
     setError(null);
     try {
       // PASO 1: Directorio de estudiantes (Buscar o Registrar)
-      let studentId;
-      const { data: existingStudent } = await supabase
-        .from("students")
-        .select("id")
-        .eq("phone", studentForm.phone)
-        .maybeSingle();
-
-      if (existingStudent) {
-        studentId = existingStudent.id;
-      } else {
-        const { data: newStudent, error: studentErr } = await supabase
-          .from("students")
-          .insert({
-            school_id: studentForm.school_id,
-            name: studentForm.name,
-            phone: studentForm.phone,
-            email: studentForm.email || null,
-          })
-          .select()
-          .single();
-
-        if (studentErr) throw studentErr;
-        studentId = newStudent.id;
-      }
 
       // PASO 2: Crear inscripción con su VALOR INICIAL DE APARTADO
       const { data: newEnrollment, error: enrollErr } = await supabase
         .from("enrollments")
         .insert({
           course_id: courseData.course_id || courseData.id,
-          student_id: studentId,
+          student_id: studentForm.studentId,
           total_amount: courseData.costo,
           payment_amount: Number(paymentPayload.amount), // Tu apartado inicial fijo 🔒
           status:
