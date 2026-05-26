@@ -13,7 +13,7 @@ const DataDetail = ({ enrollmentData, COLORS }) => {
       }}
     >
       <Stack spacing={1.5}>
-        <Stack direction='row' spacing={1} alignItems='center'>
+        <Stack direction='row' spacing={1} sx={{ alignItems: "center" }}>
           <BookIcon sx={{ color: COLORS.accent, fontSize: 20 }} />
           <Typography
             variant='subtitle2'
@@ -22,7 +22,7 @@ const DataDetail = ({ enrollmentData, COLORS }) => {
             {enrollmentData.cursos?.titulo}
           </Typography>
         </Stack>
-        <Stack direction='row' spacing={1} alignItems='center'>
+        <Stack direction='row' spacing={1} sx={{ alignItems: "center" }}>
           <EventIcon sx={{ color: "text.secondary", fontSize: 18 }} />
           <Typography variant='caption' color='textSecondary'>
             Salón:{" "}

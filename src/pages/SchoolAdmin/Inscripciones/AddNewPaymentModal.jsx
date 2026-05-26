@@ -21,6 +21,7 @@ import {
   AccountBalanceWallet as WalletIcon,
 } from "@mui/icons-material";
 import { useInscriptions } from "../../../context/InscriptionsContext";
+import { FormatCurrency } from "../../../utils/FormatCurrency";
 
 const COLORS = {
   primary: "#f06292",
@@ -41,7 +42,7 @@ const AddNewPaymentModal = ({ open, onClose, enrollmentData, schoolId }) => {
 
   // Cálculos de saldo basados en la inscripción recibida
   const totalAmount = Number(enrollmentData?.total_amount || 0);
-  const currentPaid = Number(enrollmentData?.payment_amount || 0);
+  const currentPaid = Number(enrollmentData?.calculated_total_payment || 0);
   const remainingBalance = totalAmount - currentPaid;
 
   // Sugerir liquidar el total restante al abrir el modal
@@ -51,13 +52,6 @@ const AddNewPaymentModal = ({ open, onClose, enrollmentData, schoolId }) => {
     }
     setError(null);
   }, [open, remainingBalance]);
-
-  const formatCurrency = (val) => {
-    return new Intl.NumberFormat("es-MX", {
-      style: "currency",
-      currency: "MXN",
-    }).format(val);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -163,7 +157,7 @@ const AddNewPaymentModal = ({ open, onClose, enrollmentData, schoolId }) => {
                 variant='subtitle2'
                 sx={{ fontWeight: 800, color: COLORS.dark, mb: 1.5 }}
               >
-                {enrollmentData.student_name} —{" "}
+                {enrollmentData.students?.name} —{" "}
                 <em style={{ color: "#F06292" }}>
                   {enrollmentData.cursos?.titulo}
                 </em>
@@ -183,7 +177,7 @@ const AddNewPaymentModal = ({ open, onClose, enrollmentData, schoolId }) => {
                   variant='caption'
                   sx={{ fontWeight: 700, color: COLORS.dark }}
                 >
-                  {formatCurrency(totalAmount)}
+                  {FormatCurrency(totalAmount)}
                 </Typography>
               </Stack>
               <Stack direction='row' justifyContent='space-between'>
@@ -194,7 +188,7 @@ const AddNewPaymentModal = ({ open, onClose, enrollmentData, schoolId }) => {
                   variant='caption'
                   sx={{ fontWeight: 700, color: "success.main" }}
                 >
-                  {formatCurrency(currentPaid)}
+                  {FormatCurrency(currentPaid)}
                 </Typography>
               </Stack>
               <Stack
@@ -212,7 +206,7 @@ const AddNewPaymentModal = ({ open, onClose, enrollmentData, schoolId }) => {
                   variant='body2'
                   sx={{ fontWeight: 900, color: "error.main" }}
                 >
-                  {formatCurrency(remainingBalance)}
+                  {FormatCurrency(remainingBalance)}
                 </Typography>
               </Stack>
             </Box>

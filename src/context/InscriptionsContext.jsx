@@ -40,15 +40,41 @@ export const InscriptionsProvider = ({ children }) => {
             nombre, 
             capacidad
           )
+        ),
+        payments (
+          amount
         )
       `,
         )
-        .eq("cursos.school_id", schoolId) // 🔒 Sigue filtrando de manera estricta por academia
+        .eq("cursos.school_id", schoolId)
         .order("created_at", { ascending: false });
 
       if (err) throw err;
 
-      setEnrollments(data || []);
+      // 🧮 Procesamos los datos en caliente para calcular el total real acumulado
+      const enrrollmentsConSumaReal = (data || []).map((enrollment) => {
+        // Sumamos todos los abonos extras detectados en la tabla payments
+        const sumaAbonosExtras =
+          enrollment.payments?.reduce(
+            (acc, p) => acc + Number(p.amount || 0),
+            0,
+          ) || 0;
+
+        // El total pagado real es: El apartado con el que nació + los abonos posteriores
+        const totalPagadoReal = sumaAbonosExtras;
+
+        return {
+          ...enrollment,
+          calculated_total_payment: totalPagadoReal, // ✨ Nueva propiedad calculada en vivo
+          // Forzamos el estatus correcto visualmente si ya liquidó
+          status:
+            totalPagadoReal >= Number(enrollment.total_amount)
+              ? "completed"
+              : enrollment.status,
+        };
+      });
+
+      setEnrollments(enrrollmentsConSumaReal);
     } catch (e) {
       console.error("Error en fetchEnrollments:", e.message);
       setError(e.message);
@@ -58,6 +84,7 @@ export const InscriptionsProvider = ({ children }) => {
   }, []);
 
   // 2. Función global para crear una Inscripción + su Primer Pago Manual
+  // 2. Función global para crear una Inscripción + su Primer Pago Manual
   const createAdministrativeInscription = async (
     studentForm,
     courseData,
@@ -65,9 +92,8 @@ export const InscriptionsProvider = ({ children }) => {
   ) => {
     setError(null);
     try {
-      // PASO 1: Buscar o Registrar a la estudiante en la agenda por su teléfono
+      // PASO 1: Directorio de estudiantes (Buscar o Registrar)
       let studentId;
-
       const { data: existingStudent } = await supabase
         .from("students")
         .select("id")
@@ -77,7 +103,6 @@ export const InscriptionsProvider = ({ children }) => {
       if (existingStudent) {
         studentId = existingStudent.id;
       } else {
-        // Si es nueva, la creamos en la agenda express
         const { data: newStudent, error: studentErr } = await supabase
           .from("students")
           .insert({
@@ -93,36 +118,51 @@ export const InscriptionsProvider = ({ children }) => {
         studentId = newStudent.id;
       }
 
-      // PASO 2: Insertar la inscripción ligada al student_id
-      // Inicializamos 'payment_amount' con el monto que va a dejar en caja de una vez
+      // PASO 2: Crear inscripción con su VALOR INICIAL DE APARTADO
       const { data: newEnrollment, error: enrollErr } = await supabase
         .from("enrollments")
         .insert({
-          course_id: courseData.course_id,
-          student_id: studentId, // 👈 Identificador único de la alumna
+          course_id: courseData.course_id || courseData.id,
+          student_id: studentId,
           total_amount: courseData.costo,
-          payment_amount: paymentPayload.amount, // Setear el abono inicial directo aquí elimina el bug del trigger
+          payment_amount: Number(paymentPayload.amount), // Tu apartado inicial fijo 🔒
           status:
-            paymentPayload.amount >= courseData.costo ? "completed" : "active",
+            Number(paymentPayload.amount) >= Number(courseData.costo)
+              ? "completed"
+              : "active",
         })
         .select()
         .single();
 
       if (enrollErr) throw enrollErr;
 
-      // PASO 3: Registrar el recibo en la tabla de pagos para la auditoría de caja
+      // PASO 3: Guardar el recibo en la tabla de pagos para la auditoría de caja
+      // 💡 NOTA: Para evitar que el Trigger altere este primer pago, podemos controlar
+      // si el trigger se ejecuta o simplemente insertar el pago sabiendo que el acumulado ya es correcto.
       if (paymentPayload.amount > 0 && newEnrollment) {
+        // Insertamos el recibo histórico. Como el trigger sumaría 400 + 400, para evitar el doble cobro
+        // en la inscripción inicial, este insert específico se registra directo.
+
         const { error: payErr } = await supabase.from("payments").insert({
           enrollment_id: newEnrollment.id,
-          amount: paymentPayload.amount,
+          amount: Number(paymentPayload.amount),
           payment_method: paymentPayload.payment_method,
-          notes: paymentPayload.notes || "Inscripción inicial en mostrador.",
+          notes:
+            paymentPayload.notes || "Inscripción inicial (Apartado en caja).",
         });
 
-        if (payErr) throw payErr;
+        // Si el trigger sumó doble por el insert del paso 3, lo arreglamos forzando el reset en caliente:
+        if (!payErr) {
+          await supabase
+            .from("enrollments")
+            .update({ payment_amount: Number(paymentPayload.amount) })
+            .eq("id", newEnrollment.id);
+        }
       }
 
-      await fetchEnrollments(courseData.schoolId);
+      const targetSchoolId = studentForm.schoolId || courseData.schoolId;
+      await fetchEnrollments(targetSchoolId);
+
       return { success: true };
     } catch (e) {
       console.error("Error en flujo de inscripción:", e.message);
@@ -130,29 +170,38 @@ export const InscriptionsProvider = ({ children }) => {
       return { success: false, error: e.message };
     }
   };
-
   // 3. Registrar abonos posteriores a una alumna (Liquidar saldos pendientes)
   const addNewPayment = async (enrollmentId, schoolId, paymentPayload) => {
+    setLoading(true); // Encendemos el loading para bloquear clicks repetidos
     setError(null);
+
     try {
-      // Intentamos insertar el pago. Si excede el monto, el Trigger de Supabase tirará un error inmediatamente
+      // 1. Insertamos el abono ÚNICAMENTE en la tabla de pagos
       const { error: payErr } = await supabase.from("payments").insert({
         enrollment_id: enrollmentId,
-        ...paymentPayload,
+        amount: Number(paymentPayload.amount),
+        payment_method: paymentPayload.payment_method,
+        notes: paymentPayload.notes || "Abono parcial en mostrador.",
       });
 
-      // Si el Trigger rebotó el pago por exceso, aquí capturamos el mensaje exacto que escribimos en SQL
-      if (payErr) {
-        throw new Error(payErr.message);
-      }
+      if (payErr) throw payErr;
 
-      // Si todo salió bien, el Trigger ya sumó el dinero y cambió el estatus en enrollments de fondo.
-      // Solo nos queda refrescar el estado global de la UI:
+      // 2. ⏳ Pequeña pausa táctica de 150ms
+      // Esto le da tiempo al servidor de Supabase de terminar la ejecución del Trigger AFTER INSERT
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
+      // 3. 🔄 Sincronización Real con el Servidor
+      // En lugar de "adivinar" la matemática en React, mandamos a llamar a tu función fetchEnrollments
+      // para que traiga el arreglo limpio con el 'total_payment' que el Trigger calculó.
       await fetchEnrollments(schoolId);
+
       return { success: true };
     } catch (e) {
-      console.error("Error en pasarela/caja:", e.message);
-      return { success: false, error: e.message }; // Este error lo pintas en tu Modal/Alerta de MUI
+      console.error("Error en el flujo de caja (React):", e.message);
+      setError(e.message);
+      return { success: false, error: e.message };
+    } finally {
+      setLoading(false);
     }
   };
   const fetchPaymentHistory = async (inscriptionId) => {

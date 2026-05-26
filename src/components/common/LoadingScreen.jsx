@@ -20,7 +20,7 @@ const LoadingScreen = ({ message = "Cargando aplicación..." }) => {
     >
       <Stack
         spacing={3}
-        alignItems='center'
+        sx={{ alignItems: "center" }}
         component={motion.div}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

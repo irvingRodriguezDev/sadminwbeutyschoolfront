@@ -3,6 +3,7 @@ import React from "react";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import LockIcon from "@mui/icons-material/Lock";
 import { FormatCurrency } from "../../../utils/FormatCurrency";
+import { QRCodeSVG } from "qrcode.react";
 const AccessQr = ({ enrollmentData, isLiquidado, restante, COLORS }) => {
   return (
     <Box
@@ -33,9 +34,12 @@ const AccessQr = ({ enrollmentData, isLiquidado, restante, COLORS }) => {
           <Stack
             direction='row'
             spacing={0.5}
-            alignItems='center'
-            justifyContent='center'
-            sx={{ mt: 1.5, color: "success.main" }}
+            sx={{
+              mt: 1.5,
+              color: "success.main",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
           >
             <CheckCircleIcon fontSize='small' />
             <Typography

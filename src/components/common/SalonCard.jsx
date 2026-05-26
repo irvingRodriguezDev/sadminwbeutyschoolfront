@@ -72,15 +72,14 @@ const SalonCard = ({ salon, handleAbrirEditor, handleDeleteSalon, index }) => {
           <Stack
             direction='row'
             justifyContent='space-between'
-            alignItems='center' // Alineación perfecta de la línea de los iconos
-            sx={{ mb: 3 }}
+            // Alineación perfecta de la línea de los iconos
+            sx={{ mb: 3, alignItems: "center" }}
           >
             {/* ICONO + TEXTOS */}
             <Stack
               direction='row'
               spacing={1.8}
-              alignItems='center'
-              sx={{ overflow: "hidden", flexGrow: 1 }}
+              sx={{ overflow: "hidden", flexGrow: 1, alignItems: "center" }}
             >
               <Box
                 sx={{

@@ -120,9 +120,9 @@ const NewInscriptionModal = ({ open, onClose, schoolId, onSaveSuccess }) => {
     }
 
     const studentData = {
-      name: formData.student_name,
-      phone: formData.student_phone,
-      email: formData.student_email || null,
+      name: formData.name,
+      phone: formData.phone,
+      email: formData.email || null,
       schoolId: schoolId,
     };
     const inscriptionPayload = {

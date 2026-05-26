@@ -177,8 +177,7 @@ const SchoolAdminDashboard = () => {
                     <Stack
                       direction='row'
                       spacing={1}
-                      alignItems='center'
-                      mt={0.5}
+                      sx={{ mt: 0.5, alignItems: "center" }}
                     >
                       <Typography variant='caption' color='textSecondary'>
                         {item.time}

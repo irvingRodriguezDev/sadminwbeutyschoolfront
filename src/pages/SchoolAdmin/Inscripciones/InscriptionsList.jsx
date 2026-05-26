@@ -177,7 +177,7 @@ const InscriptionsList = ({ enrollments, loading, schoolId }) => {
           ) : (
             enrollments.map((row) => {
               const total = Number(row.total_amount || 0);
-              const pagado = Number(row.payment_amount || 0);
+              const pagado = Number(row.calculated_total_payment || 0);
               const restante = total - pagado;
               const porcentajePago =
                 total > 0 ? Math.min((pagado / total) * 100, 100) : 0;

@@ -47,7 +47,7 @@ const InscriptionDetail = ({ open, onClose, enrollmentData }) => {
   if (!enrollmentData) return null;
 
   const total = Number(enrollmentData.total_amount || 0);
-  const pagado = Number(enrollmentData.payment_amount || 0);
+  const pagado = Number(enrollmentData.calculated_total_payment || 0);
   const restante = total - pagado;
   const isLiquidado = enrollmentData.status === "completed";
 
@@ -56,13 +56,11 @@ const InscriptionDetail = ({ open, onClose, enrollmentData }) => {
       anchor='right'
       open={open}
       onClose={onClose}
-      PaperProps={{
-        sx: {
-          width: { xs: "100%", sm: 450 },
-          borderTopLeftRadius: "32px",
-          borderBottomLeftRadius: "32px",
-          overflow: "hidden",
-        },
+      sx={{
+        width: { xs: "100%", sm: 450 },
+        borderTopLeftRadius: "32px",
+        borderBottomLeftRadius: "32px",
+        overflow: "hidden",
       }}
     >
       {/* HEADER PREMIUM */}

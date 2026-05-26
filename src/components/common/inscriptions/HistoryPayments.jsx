@@ -11,10 +11,11 @@ import {
 import React from "react";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import { FormatCurrency } from "../../../utils/FormatCurrency";
+
 const HistoryPayments = ({ loadingPayments, payments, COLORS }) => {
   return (
     <Box>
-      <Stack direction='row' spacing={1} alignItems='center' sx={{ mb: 1 }}>
+      <Stack direction='row' spacing={1} sx={{ mb: 1, alignItems: "center" }}>
         <ReceiptIcon sx={{ color: COLORS.primary, fontSize: 20 }} />
         <Typography
           variant='subtitle2'
@@ -49,11 +50,15 @@ const HistoryPayments = ({ loadingPayments, payments, COLORS }) => {
               }}
             >
               <ListItemText
+                // 🔥 SOLUCIÓN AQUÍ: Forzamos a que el texto secundario use un div semántico en HTML
+                secondaryTypographyProps={{ component: "div" }}
                 primary={
                   <Stack
                     direction='row'
-                    justifyContent='space-between'
-                    alignItems='center'
+                    sx={{
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
                   >
                     <Typography
                       variant='body2'
