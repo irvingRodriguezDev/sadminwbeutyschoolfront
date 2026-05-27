@@ -85,7 +85,7 @@ const ForgotPassword = () => {
                   color='white'
                   gutterBottom
                 >
-                  ¿Olvidaste tu clave?
+                  ¿Olvidaste tu contraseña?
                 </Typography>
                 <Typography variant='body2' sx={{ color: "#F2749F", mb: 4 }}>
                   No te preocupes. Ingresa tu correo y te enviaremos un enlace
