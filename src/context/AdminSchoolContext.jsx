@@ -32,111 +32,113 @@ export const AdminSchoolProvider = ({ children }) => {
     setError(null);
 
     try {
-      // 1. Obtener datos generales de la academia
-      const { data: school, error: schoolErr } = await supabase
-        .from("schools")
-        .select("*")
-        .eq("id", schoolId)
-        .single();
+      // ⏰ 1. CONTROL DE FECHA LOCAL (Evita desfases UTC de CDMX / Toluca)
+      const tzOffset = new Date().getTimezoneOffset() * 60000;
+      const hoyLocalISO = new Date(Date.now() - tzOffset)
+        .toISOString()
+        .split("T")[0];
 
-      if (schoolErr) throw schoolErr;
-      setSchoolData(school);
+      // 🚀 2. CONSULTAS EN PARALELO (Elimina el cuello de botella de esperas secuenciales)
+      const [
+        schoolRes,
+        salonesRes,
+        coursesRes,
+        classesTodayRes,
+        enrollmentsRes,
+        totalStudentsCountRes,
+      ] = await Promise.all([
+        // Query 1: Datos de la academia
+        supabase.from("schools").select("*").eq("id", schoolId).single(),
 
-      // 2. Obtener conteo de salones de esta academia
-      const { count: salonesCount, error: salonesErr } = await supabase
-        .from("salones")
-        .select("*", { count: "exact", head: true })
-        .eq("school_id", schoolId);
+        // Query 2: Conteo de salones
+        supabase
+          .from("salones")
+          .select("*", { count: "exact", head: true })
+          .eq("school_id", schoolId),
 
-      if (salonesErr) throw salonesErr;
+        // Query 3: Catálogo de cursos activos
+        supabase
+          .from("cursos")
+          .select("tipo_curso")
+          .eq("school_id", schoolId)
+          .eq("status", "active"),
 
-      // 3. Obtener cursos y talleres activos
-      const { data: courses, error: coursesErr } = await supabase
-        .from("cursos")
-        .select("*")
-        .eq("school_id", schoolId)
-        .eq("status", "active");
+        // Query 4: Cursos vigentes corriendo el día de hoy (Rango inclusivo)
+        supabase
+          .from("cursos")
+          .select(
+            `
+          id, titulo, tipo_curso, hora_inicio, hora_fin,
+          salones (nombre)
+        `,
+          )
+          .eq("school_id", schoolId)
+          .lte("fecha_inicio", hoyLocalISO) // Ya empezó...
+          .gte("fecha_fin", hoyLocalISO), // ...y no ha terminado
 
-      if (coursesErr) throw coursesErr;
+        // Query 5: Las últimas 5 inscripciones rápidas de la escuela (Ligero y con rango controlado)
+        supabase
+          .from("enrollments")
+          .select(
+            `
+          id, created_at, status, total_amount,
+          students (name),
+          cursos!inner(id, titulo, school_id)
+        `,
+          )
+          .eq("cursos.school_id", schoolId)
+          .order("created_at", { ascending: false })
+          .range(0, 4), // 🎯 Limitado desde la BD: Trae solo las 5 más nuevas
 
-      const cursosActivos = courses.filter(
-        (c) => c.tipo_curso === "CURSO",
+        // Query 6: Conteo real y absoluto de alumnas sin límite de registros (Evita el tope de 1,000)
+        supabase
+          .from("students")
+          .select("*", { count: "exact", head: true })
+          .eq("school_id", schoolId),
+      ]);
+
+      // Validar errores críticos del set de consultas
+      if (schoolRes.error) throw schoolRes.error;
+      if (salonesRes.error) throw salonesRes.error;
+      if (coursesRes.error) throw coursesRes.error;
+      if (classesTodayRes.error) throw classesTodayRes.error;
+      if (enrollmentsRes.error) throw enrollmentsRes.error;
+      if (totalStudentsCountRes.error) throw totalStudentsCountRes.error;
+
+      // 📝 3. PROCESAR METRICAS DE CURSOS
+      const activeCoursesList = coursesRes.data || [];
+      const cursosActivosCount = activeCoursesList.filter(
+        (c) => c.tipo_curso === "Curso",
       ).length;
-      const proximosTalleres = courses.filter(
-        (c) => c.tipo_curso === "TALLER",
+      const proximosTalleresCount = activeCoursesList.filter(
+        (c) => c.tipo_curso === "Taller",
       ).length;
 
-      // 4. Obtener actividades programadas para el día de hoy
-      const hoyISO = new Date().toISOString().split("T")[0];
+      // 📝 4. PROCESAR ACTIVIDADES DE HOY
+      const actividadesProcesadas = (classesTodayRes.data || []).map(
+        (item) => ({
+          id: item.id,
+          title: item.titulo || "Clase sin nombre",
+          time: `${item.hora_inicio?.substring(0, 5) || "00:00"} - ${item.hora_fin?.substring(0, 5) || "00:00"}`,
+          classroom: item.salones?.nombre || "Salón General",
+          type: item.tipo_curso || "Curso",
+        }),
+      );
 
-      const { data: classesToday, error: classesErr } = await supabase
-        .from("cursos")
-        .select(
-          `
-        id,
-        titulo,
-        tipo_curso,
-        hora_inicio,
-        hora_fin,
-        salones (nombre)
-      `,
-        )
-        .eq("school_id", schoolId)
-        .eq("fecha_inicio", hoyISO);
+      // 📝 5. PROCESAR HISTORIAL DE INSCRIPCIONES RECIENTES
+      const inscripcionesProcesadas = (enrollmentsRes.data || []).map((e) => {
+        const studentName = e.students?.name || "Alumna Registrada";
+        return {
+          id: e.id,
+          studentName: studentName.trim(),
+          courseName: e.cursos?.titulo || "",
+          status: e.status === "completed" ? "Pagado" : "abierto",
+          initial: studentName ? studentName.charAt(0).toUpperCase() : "A",
+        };
+      });
 
-      if (classesErr) throw classesErr;
-
-      const actividadesProcesadas = (classesToday || []).map((item) => ({
-        id: item.id,
-        title: item.titulo || "Clase sin nombre",
-        time: `${item.hora_inicio?.substring(0, 5) || "00:00"} - ${item.hora_fin?.substring(0, 5) || "00:00"}`,
-        classroom: item.salones?.nombre || "Salón Asignado",
-        type: item.tipo_curso || "CURSO",
-      }));
-
-      // 5. Últimas inscripciones y conteo total de alumnos
-      // 🔒 Corrección: Añadimos el Join a 'students' al mismo nivel que 'cursos!inner'
-      const { data: enrollments, error: enrollmentsErr } = await supabase
-        .from("enrollments")
-        .select(
-          `
-        id,
-        created_at,
-        status,
-        student_id,
-        total_amount,
-        students (
-          name,
-          phone
-        ),
-        cursos!inner(id, titulo, school_id)
-      `,
-        )
-        .eq("cursos.school_id", schoolId)
-        .order("created_at", { ascending: false });
-
-      if (enrollmentsErr) throw enrollmentsErr;
-
-      // Alumnas únicas utilizando el 'student_id' relacional de la tabla agenda
-      const totalAlumnos = new Set(
-        (enrollments || []).map((e) => e.student_id).filter(Boolean),
-      ).size;
-
-      // Procesamos las últimas 4 inscripciones leyendo desde el objeto anidado 'students'
-      const inscripcionesProcesadas = (enrollments || [])
-        .slice(0, 4)
-        .map((e) => {
-          const studentName = e.students?.name || "Alumna Registrada";
-          return {
-            id: e.id,
-            studentName: studentName.trim(),
-            courseName: e.cursos?.titulo || "Curso de Nivelación",
-            status: e.status === "completed" ? "Pagado" : "abierto",
-            initial: studentName ? studentName.charAt(0).toUpperCase() : "A",
-          };
-        });
-
-      // 6. Calcular ocupación estimada de salones
+      // 📝 6. ESTIMACIÓN DE OCUPACIÓN REAL DE INFRAESTRUCTURA
+      const salonesCount = salonesRes.count || 0;
       const salonesOcupadosHoy = new Set(
         actividadesProcesadas.map((a) => a.classroom),
       ).size;
@@ -145,26 +147,25 @@ export const AdminSchoolProvider = ({ children }) => {
           ? Math.round((salonesOcupadosHoy / salonesCount) * 100)
           : 0;
 
-      // Actualizamos los estados globales del Context
-      setMetrics({
-        salonesCount: salonesCount || 0,
-        cursosActivosCount: cursosActivos,
-        totalAlumnosCount: totalAlumnos,
-        proximosTalleresCount: proximosTalleres,
-        ocupacionSalones: porcentajeOcupacion || 75,
-      });
-
+      // 🌟 Actualización unificada del estado
+      setSchoolData(schoolRes.data);
       setActividadesHoy(actividadesProcesadas);
       setUltimasInscripciones(inscripcionesProcesadas);
+      setMetrics({
+        salonesCount,
+        cursosActivosCount,
+        totalAlumnosCount: totalStudentsCountRes.count || 0, // Conteo exacto e ilimitado de alumnas
+        proximosTalleresCount,
+        ocupacionSalones: porcentajeOcupacion || 0,
+      });
     } catch (err) {
-      console.error("Error poblando Dashboard Context:", err.message);
+      console.error("Error crítico en Dashboard Context:", err.message);
       setError(err.message);
     } finally {
       setLoadingDashboard(false);
     }
   }, [schoolId]);
 
-  // Ejecución inicial automática al montar el componente o cambiar de plantel
   useEffect(() => {
     fetchDashboardData();
   }, [fetchDashboardData]);
@@ -178,7 +179,7 @@ export const AdminSchoolProvider = ({ children }) => {
         ultimasInscripciones,
         loadingDashboard,
         error,
-        refrescarDashboard: fetchDashboardData, // Permite hacer un "pull to refresh" si es necesario
+        refrescarDashboard: fetchDashboardData,
       }}
     >
       {children}
@@ -186,7 +187,6 @@ export const AdminSchoolProvider = ({ children }) => {
   );
 };
 
-// Hook personalizado para consumir el contexto de forma limpia
 export const useAdminSchool = () => {
   const context = useContext(AdminSchoolContext);
   if (!context) {
