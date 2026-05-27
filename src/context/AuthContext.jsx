@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
         // Importante: Verifica que tu tabla se llame 'perfiles' o 'profiles'
         const { data, error } = await supabase
           .from("profiles")
-          .select("*")
+          .select(`*, escuela:schools(name)`)
           .eq("id", sessionUser.id)
           .single();
 

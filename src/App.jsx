@@ -22,6 +22,7 @@ import AltaSalon from "./pages/SchoolAdmin/Salones/AltaSalon";
 import AltaCursoStepper from "./pages/SchoolAdmin/Cursos/AltaCurso";
 import GestionInscripciones from "./pages/SchoolAdmin/Inscripciones/GestionInscripciones";
 import NewInscription from "./pages/SchoolAdmin/Inscripciones/NewInscriptionModal";
+import GestionFinanzas from "./pages/SchoolAdmin/Finanzas/GestionFinanzas";
 function App() {
   const { loading, profile } = useAuth();
 
@@ -55,6 +56,8 @@ function App() {
             path='/crear-inscripcion/:schoolId'
             element={<NewInscription />}
           />
+
+          <Route path='/finanzas' element={<GestionFinanzas />} />
 
           <Route path='/configuracion' element={<Settings />} />
         </Route>

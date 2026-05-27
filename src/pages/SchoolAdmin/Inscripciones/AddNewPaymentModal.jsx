@@ -112,7 +112,7 @@ const AddNewPaymentModal = ({ open, onClose, enrollmentData, schoolId }) => {
       onClose={handleClose}
       maxWidth='xs'
       fullWidth
-      PaperProps={{ sx: { borderRadius: "24px" } }}
+      sx={{ borderRadius: "24px" }}
     >
       <DialogTitle
         sx={{

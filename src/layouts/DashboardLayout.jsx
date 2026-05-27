@@ -25,6 +25,7 @@ import {
   BookOutlined,
   GroupAddOutlined,
 } from "@mui/icons-material";
+import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
 import { useLocation, useNavigate, Outlet } from "react-router-dom";
 import { supabase } from "../config/supabaseClient";
 import { useAuth } from "../context/AuthContext";
@@ -92,6 +93,12 @@ const DashboardLayout = () => {
       label: "Inscripciones",
       icon: <GroupAddOutlined />,
       path: "/inscripciones",
+      roles: ["school_admin"],
+    },
+    {
+      label: "Finanzas",
+      icon: <RequestQuoteIcon />,
+      path: "/finanzas",
       roles: ["school_admin"],
     },
   ];
