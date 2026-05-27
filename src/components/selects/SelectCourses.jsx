@@ -1,63 +1,141 @@
 import { Box } from "@mui/material";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Select from "react-select";
 import { useCursos } from "../../context/CursoContext";
 import { FormatCurrency } from "../../utils/FormatCurrency";
-const SelectCourses = (props) => {
-  const { cursos, refreshCursos } = useCursos();
-  const detectarCambiosCursos = (value) => {
-    props.detectarCambiosCursos(value);
-  };
-  useEffect(() => {
-    refreshCursos();
-  }, []);
+import { useAuth } from "../../context/AuthContext";
+import FormatDate from "../../utils/FormatDate";
 
+const SelectCourses = (props) => {
+  const { profile } = useAuth();
+  const { fetchCursos } = useCursos();
+  const [options, setOptions] = useState([]);
+
+  const detectarCambiosCursos = (value) => {
+    // react-select entrega el objeto completo { value, label, slots_left },
+    // pasamos solo el ID al padre para no romper tu handleCourseChange original
+    props.detectarCambiosCursos(value ? value.value : null);
+  };
+
+  useEffect(() => {
+    const loadSelectOptions = async () => {
+      const res = await fetchCursos(profile.school_id, { isSelect: true });
+      if (!res?.courses) return;
+
+      // ⏰ Control del tiempo real
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+
+      // 🌸 Filtramos y mapeamos en un solo paso
+      const cursosValidos = res.courses
+        .filter((c) => {
+          if (!c.fecha_inicio) return false;
+          const fechaCurso = new Date(`${c.fecha_inicio}T00:00:00`);
+          fechaCurso.setHours(0, 0, 0, 0);
+
+          return fechaCurso >= hoy; // 🎯 REGLA 1: Solo cursos cuya fecha no haya pasado
+        })
+        .map((c) => {
+          const capacidad = c.salon?.capacidad || 0;
+          const activos = c.enrollments?.length || 0;
+          const slotsLeft = capacidad - activos;
+
+          return {
+            value: c.id,
+            // Si está lleno, le metemos el tag "¡LLENO!" al texto para que Caro lo note al instante
+            label: `${c.tipo_curso} - ${c.titulo} - (${FormatCurrency(c.costo)}) - ${FormatDate(c.fecha_inicio)}  ${slotsLeft <= 0 ? "⚠️ ¡CUPO LLENO!" : ""}`,
+            slots_left: slotsLeft, // Guardamos la variable dentro de la opción
+          };
+        });
+
+      setOptions(cursosValidos);
+    };
+
+    if (profile?.school_id) loadSelectOptions();
+  }, [profile?.school_id, fetchCursos]);
+
+  // 🎨 ESTILOS PREMIUM (Mantenemos tus hermosas transiciones y scroll rosa)
   const customStyles = {
     control: (provided, state) => ({
       ...provided,
-      borderColor: state.isFocused ? "#E53888" : "#E53888",
-      boxShadow: state.isFocused ? "0 0 0 1px #E53888" : "none",
-      "&:hover": {
-        borderColor: "#E53888",
-      },
+      borderRadius: "12px",
+      borderColor: state.isFocused ? "#E53888" : "rgba(240, 98, 146, 0.3)",
+      boxShadow: state.isFocused
+        ? "0 4px 12px rgba(229, 56, 136, 0.15)"
+        : "none",
+      padding: "4px 6px",
+      backgroundColor: "#fff",
+      transition: "all 0.2s ease-in-out",
+      "&:hover": { borderColor: "#E53888" },
     }),
     placeholder: (provided) => ({
       ...provided,
-      color: "#E53888", // color del placeholder
+      color: "#B29EA6",
+      fontSize: "0.95rem",
+      fontWeight: 500,
     }),
     singleValue: (provided) => ({
       ...provided,
-      color: "black", // texto seleccionado
+      color: "#2D2D2D",
+      fontWeight: 600,
+      fontSize: "0.95rem",
     }),
     dropdownIndicator: (provided, state) => ({
       ...provided,
-      color: state.isFocused ? "#E53888" : "#E53888",
-      "&:hover": {
-        color: "#E53888",
+      color: state.isFocused ? "#E53888" : "rgba(240, 98, 146, 0.6)",
+    }),
+    indicatorSeparator: (provided) => ({
+      ...provided,
+      backgroundColor: "rgba(240, 98, 146, 0.15)",
+    }),
+    menu: (base) => ({
+      ...base,
+      zIndex: 1000,
+      borderRadius: "14px",
+      boxShadow: "0px 10px 30px rgba(229, 56, 136, 0.08)",
+      border: "1px solid rgba(240, 98, 146, 0.12)",
+      overflow: "hidden",
+    }),
+    menuList: (provided) => ({
+      ...provided,
+      padding: "6px",
+      "&::-webkit-scrollbar": { width: "6px" },
+      "&::-webkit-scrollbar-track": { background: "transparent" },
+      "&::-webkit-scrollbar-thumb": {
+        backgroundColor: "rgba(229, 56, 134, 0.3)",
+        borderRadius: "10px",
+      },
+      "&::-webkit-scrollbar-thumb:hover": {
+        backgroundColor: "rgba(229, 56, 134, 0.6)",
       },
     }),
     option: (provided, state) => ({
       ...provided,
-      backgroundColor: state.isSelected
-        ? "#E53888"
-        : state.isFocused
-          ? "#f0f0f0"
-          : "white",
-      color: state.isSelected ? "white" : "black",
-      "&:hover": {
-        backgroundColor: state.isSelected ? "#E53888" : "#f5f5f5",
-      },
-    }),
-    menu: (base) => ({
-      ...base,
-      zIndex: 100,
+      padding: "10px 16px",
+      fontSize: "0.9rem",
+      fontWeight: state.isSelected ? 700 : 500,
+      borderRadius: "8px",
+      mb: "2px",
+      // 🚫 Si la opción está deshabilitada (curso lleno), la pintamos gris suave
+      backgroundColor: state.isDisabled
+        ? "#F5F5F5"
+        : state.isSelected
+          ? "#E53888"
+          : state.isFocused
+            ? "#FFF1F6"
+            : "white",
+      color: state.isDisabled
+        ? "#999999"
+        : state.isSelected
+          ? "white"
+          : state.isFocused
+            ? "#E53888"
+            : "#2D2D2D",
+      cursor: state.isDisabled ? "not-allowed" : "pointer",
+      transition: "all 0.15s ease",
     }),
   };
-  const options = (cursos || []).map((c) => ({
-    value: c.id,
-    label: `${c.tipo_curso} - ${c.titulo} - (${FormatCurrency(c.costo)})`,
-    data: c, // Guardamos el objeto completo para recuperarlo en el onChange
-  }));
+
   return (
     <Box
       sx={{ display: "flex", flexDirection: "column", gap: 1, width: "100%" }}
@@ -65,13 +143,15 @@ const SelectCourses = (props) => {
       <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
         <Box sx={{ flexGrow: 1 }}>
           <Select
-            placeholder='Buscar curso'
+            placeholder='Buscar o seleccionar curso...'
             isClearable
             options={options}
             onChange={detectarCambiosCursos}
             styles={customStyles}
-            noOptionsMessage={() => "No se encontraron alumnas"}
-            loadingMessage={() => "Buscando..."}
+            // 🚫 REGLA 2: Bloquear opciones si el remanente de lugares llegó a cero
+            isOptionDisabled={(option) => option.slots_left <= 0}
+            noOptionsMessage={() => "No hay cursos vigentes activos"}
+            loadingMessage={() => "Buscando catálogo..."}
           />
         </Box>
       </Box>

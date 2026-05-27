@@ -16,50 +16,54 @@ export const SchoolProvider = ({ children }) => {
   const [salones, setSalones] = useState([]);
   const [loadingSchool, setLoadingSchool] = useState(true);
 
-  // Función para obtener los datos de la escuela y salones
-  const fetchSchoolData = useCallback(async () => {
-    if (!profile?.school_id) return;
+  // 🚀 CONSEJO PRO: Envolvemos con useCallback con dependencia vacía [] para que NUNCA cambie su referencia en memoria
+  const fetchSchoolData = useCallback(async (schoolId) => {
+    const targetId = schoolId || profile?.school_id;
+    if (!targetId) return;
 
     setLoadingSchool(true);
     try {
-      // 1. Obtener datos de la escuela
-      const { data: schoolData, error: schoolError } = await supabase
-        .from("schools")
-        .select("*")
-        .eq("id", profile.school_id)
-        .maybeSingle();
+      // ⚡ OPTIMIZACIÓN: Disparamos ambas consultas en paralelo para que vuelen en la pestaña Network
+      const [schoolResponse, salonesResponse] = await Promise.all([
+        supabase.from("schools").select("*").eq("id", targetId).maybeSingle(),
+        supabase
+          .from("salones")
+          .select("*")
+          .eq("school_id", targetId)
+          .order("nombre", { ascending: true }),
+      ]);
 
-      if (schoolError) throw schoolError;
-      setSchool(schoolData);
+      if (schoolResponse.error) throw schoolResponse.error;
+      if (salonesResponse.error) throw salonesResponse.error;
 
-      // 2. Obtener los salones asociados
-      const { data: salonesData, error: salonesError } = await supabase
-        .from("salones")
-        .select("*")
-        .eq("school_id", profile.school_id)
-        .order("nombre", { ascending: true });
-
-      if (salonesError) throw salonesError;
-      setSalones(salonesData || []);
+      setSchool(schoolResponse.data);
+      setSalones(salonesResponse.data || []);
     } catch (error) {
       console.error("Error cargando el contexto de la escuela:", error.message);
     } finally {
       setLoadingSchool(false);
     }
-  }, [profile?.school_id]);
+  }, []); // Dejamos esto vacío para asegurar estabilidad total de la función
 
+  // 🔄 Control estricto de la carga inicial automática
   useEffect(() => {
     if (profile?.school_id) {
-      fetchSchoolData();
+      // 🚀 Se dispara ÚNICAMENTE cuando cambia el ID real de la escuela, rompiendo las 175 peticiones
+      fetchSchoolData(profile.school_id);
+    } else {
+      // 🧼 Limpieza preventiva si el usuario cierra sesión
+      setSchool(null);
+      setSalones([]);
+      setLoadingSchool(false);
     }
-  }, [profile?.school_id, fetchSchoolData]);
+  }, [profile?.school_id]); // ⚡ Retiramos fetchSchoolData de aquí para blindar el bucle infinito
 
-  // Exponemos los datos y la función de refrescar (útil tras crear un salón)
+  // Exponemos los datos y la función de refrescar de manera intuitiva
   const value = {
     school,
     salones,
     loadingSchool,
-    refreshSchoolData: fetchSchoolData,
+    refreshSchoolData: () => fetchSchoolData(profile?.school_id),
   };
 
   return (
@@ -67,7 +71,6 @@ export const SchoolProvider = ({ children }) => {
   );
 };
 
-// Hook personalizado para usar el contexto fácilmente
 export const useSchool = () => {
   const context = useContext(SchoolContext);
   if (!context) {

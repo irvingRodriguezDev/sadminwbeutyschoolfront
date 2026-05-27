@@ -8,29 +8,85 @@ export const StudentsProvider = ({ children }) => {
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [studentsError, setStudentsError] = useState(null);
 
-  // 1. Cargar el catálogo completo de estudiantes de la academia
-  const fetchStudents = useCallback(async (schoolId) => {
-    if (!schoolId) return;
+  // 🌸 Metadata global para el paginador de Material UI en el directorio
+  const [studentsPagination, setStudentsPagination] = useState({
+    totalPages: 1,
+    totalRecords: 0,
+  });
+
+  // 1. Cargar estudiantes con tu patrón inteligente de parámetros 🚀
+  const fetchStudents = useCallback(async (schoolId, params = {}) => {
+    if (!schoolId) return { students: [], totalPages: 1, totalRecords: 0 };
+
+    const {
+      isSelect = false, // 🔒 Bandera clave para react-select
+      page = 1,
+      limit = 10,
+      search = "",
+    } = params;
+
     setLoadingStudents(true);
     setStudentsError(null);
+
     try {
-      const { data, error } = await supabase
+      // Caso 1: Optimizado para react-select (Rápido, plano y sin paginar)
+      if (isSelect) {
+        const { data, error } = await supabase
+          .from("students")
+          .select("id, name, phone, email")
+          .eq("school_id", schoolId)
+          .order("name", { ascending: true });
+
+        if (error) throw error;
+
+        // Retornamos directo para no romper la vista de la tabla paginada
+        return { students: data || [] };
+      }
+
+      // Caso 2: Modo Directorio / Tabla Administrativa (Con paginación y buscador)
+      const from = (page - 1) * limit;
+      const to = from + limit - 1;
+
+      let query = supabase
         .from("students")
-        .select("id, name, phone, email, created_at")
-        .eq("school_id", schoolId)
+        .select("id, name, phone, email, created_at", { count: "exact" }) // { count: "exact" } para la UI
+        .eq("school_id", schoolId);
+
+      // 🔍 Buscador: Filtra si coincide el nombre O el teléfono (WhatsApp)
+      if (search) {
+        query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%`);
+      }
+
+      const { data, count, error } = await query
+        .range(from, to)
         .order("name", { ascending: true });
 
       if (error) throw error;
+
+      const totalPages = Math.ceil((count || 0) / limit);
+
+      // Guardamos en los estados globales para la tabla del Directorio
       setStudents(data || []);
+      setStudentsPagination({
+        totalPages: totalPages || 1,
+        totalRecords: count || 0,
+      });
+
+      return {
+        students: data || [],
+        totalPages,
+        totalRecords: count,
+      };
     } catch (e) {
       console.error("Error en fetchStudents:", e.message);
       setStudentsError(e.message);
+      return { students: [], totalPages: 1, totalRecords: 0 };
     } finally {
       setLoadingStudents(false);
     }
   }, []);
 
-  // 2. Registrar o actualizar una estudiante de forma directa (para un módulo de Directorio)
+  // 2. Registrar o actualizar una estudiante de forma directa
   const saveStudent = async (schoolId, studentData) => {
     setStudentsError(null);
     try {
@@ -38,21 +94,21 @@ export const StudentsProvider = ({ children }) => {
         .from("students")
         .upsert(
           {
-            id: studentData.id || undefined, // Si lleva ID, Postgres actualiza; si no, inserta
+            id: studentData.id || undefined,
             school_id: schoolId,
             name: studentData.name,
             phone: studentData.phone,
             email: studentData.email || null,
           },
           { onConflict: "phone" },
-        ) // 🔒 Evita duplicados por número de WhatsApp
+        )
         .select()
         .single();
 
       if (error) throw error;
 
-      // Refrescar la lista local en automático
-      await fetchStudents(schoolId);
+      // 🔄 Refrescamos la primera página del directorio de inmediato de forma limpia
+      await fetchStudents(schoolId, { page: 1, limit: 10 });
       return { success: true, data };
     } catch (e) {
       console.error("Error al guardar estudiante:", e.message);
@@ -66,6 +122,7 @@ export const StudentsProvider = ({ children }) => {
         students,
         loadingStudents,
         studentsError,
+        studentsPagination, // 🌸 Entregamos el control de páginas a la UI
         fetchStudents,
         saveStudent,
       }}

@@ -7,66 +7,124 @@ export const InscriptionsProvider = ({ children }) => {
   const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isFiltering, setIsFiltering] = useState(false);
 
-  // 1. Obtener todas las inscripciones del plantel (Para la tabla del Dashboard)
-  const fetchEnrollments = useCallback(async (schoolId) => {
-    setLoading(true);
+  // 🌸 Guardamos la metadata para pintar la paginación en la UI
+  const [paginationData, setPaginationData] = useState({
+    totalPages: 1,
+    totalRecords: 0,
+  });
+
+  // 1. Obtener inscripciones con buscador y paginación unificada
+  const fetchEnrollments = useCallback(async (schoolId, params = {}) => {
+    if (!schoolId) return { enrollments: [], totalPages: 1, totalRecords: 0 };
+
+    const { page = 1, limit = 10, search = "", isSelect = false } = params;
+
     setError(null);
+
     try {
-      const { data, error: err } = await supabase
+      // 🌟 REFACTOR INTELIGENTE DE LOADERS:
+      if (isSelect) {
+        // En modo select no alteramos los cargadores globales de la interfaz
+      } else if (search || page > 1) {
+        // Si hay búsqueda o cambio de página, activamos el indicador sutil
+        setIsFiltering(true);
+      } else {
+        // Si limpia el buscador o vuelve a la pág 1, solo mostramos pantalla completa
+        // si el estado local realmente está vacío (carga inicial absoluta)
+        setEnrollments((currentEnrollments) => {
+          if (currentEnrollments.length === 0) {
+            setLoading(true); // Levanta el LoadingScreen general
+          }
+          return currentEnrollments;
+        });
+        // Activamos también el filtro sutil para cambios rápidos de estado
+        setIsFiltering(true);
+      }
+
+      // Si solo es para un selector rápido, traemos datos planos ultra ligeros
+      if (isSelect) {
+        const { data, error: err } = await supabase
+          .from("enrollments")
+          .select("id, status")
+          .eq("cursos.school_id", schoolId)
+          .order("created_at", { ascending: false });
+
+        if (err) throw err;
+        return { enrollments: data };
+      }
+
+      // Cálculo de rangos para Supabase PostgREST
+      const from = (page - 1) * limit;
+      const to = from + limit - 1;
+
+      // 🚀 Query Base con el conteo exacto activado
+      let query = supabase
         .from("enrollments")
         .select(
           `
-        id, 
-        created_at, 
-        course_id, 
-        student_id,
-        status, 
-        qr_code_token, 
-        payment_amount, 
-        total_amount, 
-        students (
-          id,
-          name, 
-          phone, 
-          email
-        ),
-        cursos!inner (
           id, 
-          titulo, 
-          costo, 
-          school_id, 
-          salones (
-            nombre, 
-            capacidad
+          created_at, 
+          course_id, 
+          student_id,
+          status, 
+          qr_code_token, 
+          payment_amount, 
+          total_amount, 
+          students!inner (
+            id,
+            name, 
+            phone, 
+            email
+          ),
+          cursos!inner (
+            id, 
+            titulo, 
+            costo, 
+            school_id, 
+            salones (
+              nombre, 
+              capacidad
+            )
+          ),
+          payments (
+            amount
           )
-        ),
-        payments (
-          amount
+        `,
+          { count: "exact" }, // 🎯 Indispensable para calcular páginas totales
         )
-      `,
-        )
-        .eq("cursos.school_id", schoolId)
-        .order("created_at", { ascending: false });
+        .eq("cursos.school_id", schoolId);
+
+      // 🔍 Buscador Inteligente: Filtra por nombre o teléfono de la alumna
+      if (search) {
+        query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%`, {
+          foreignTable: "students",
+        });
+      }
+
+      // Aplicamos rango de página y orden cronológico
+      const {
+        data,
+        count,
+        error: err,
+      } = await query.range(from, to).order("created_at", { ascending: false });
 
       if (err) throw err;
 
-      // 🧮 Procesamos los datos en caliente para calcular el total real acumulado
+      // 🧮 Tu matemática procesada en vivo
       const enrrollmentsConSumaReal = (data || []).map((enrollment) => {
-        // Sumamos todos los abonos extras detectados en la tabla payments
         const sumaAbonosExtras =
           enrollment.payments?.reduce(
             (acc, p) => acc + Number(p.amount || 0),
             0,
           ) || 0;
 
-        // El total pagado real es: El apartado con el que nació + los abonos posteriores
         const totalPagadoReal = sumaAbonosExtras;
 
         return {
           ...enrollment,
-          calculated_total_payment: totalPagadoReal, // ✨ Nueva propiedad calculada en vivo
-          // Forzamos el estatus correcto visualmente si ya liquidó
+          calculated_total_payment: totalPagadoReal,
           status:
             totalPagadoReal >= Number(enrollment.total_amount)
               ? "completed"
@@ -74,16 +132,31 @@ export const InscriptionsProvider = ({ children }) => {
         };
       });
 
+      const totalPages = Math.ceil((count || 0) / limit);
+
+      // Actualizamos estados globales del contexto
       setEnrollments(enrrollmentsConSumaReal);
+      setPaginationData({
+        totalPages: totalPages || 1,
+        totalRecords: count || 0,
+      });
+
+      return {
+        enrollments: enrrollmentsConSumaReal,
+        totalPages,
+        totalRecords: count,
+      };
     } catch (e) {
       console.error("Error en fetchEnrollments:", e.message);
       setError(e.message);
+      return { enrollments: [], totalPages: 1, totalRecords: 0 };
     } finally {
+      // 🔒 Saneamiento absoluto: Apagamos ambos cargadores al finalizar de forma segura
       setLoading(false);
+      setIsFiltering(false);
     }
   }, []);
 
-  // 2. Función global para crear una Inscripción + su Primer Pago Manual
   // 2. Función global para crear una Inscripción + su Primer Pago Manual
   const createAdministrativeInscription = async (
     studentForm,
@@ -92,16 +165,14 @@ export const InscriptionsProvider = ({ children }) => {
   ) => {
     setError(null);
     try {
-      // PASO 1: Directorio de estudiantes (Buscar o Registrar)
-
-      // PASO 2: Crear inscripción con su VALOR INICIAL DE APARTADO
+      // Crear inscripción con valor inicial
       const { data: newEnrollment, error: enrollErr } = await supabase
         .from("enrollments")
         .insert({
           course_id: courseData.course_id || courseData.id,
           student_id: studentForm.studentId,
           total_amount: courseData.costo,
-          payment_amount: Number(paymentPayload.amount), // Tu apartado inicial fijo 🔒
+          payment_amount: Number(paymentPayload.amount),
           status:
             Number(paymentPayload.amount) >= Number(courseData.costo)
               ? "completed"
@@ -112,13 +183,8 @@ export const InscriptionsProvider = ({ children }) => {
 
       if (enrollErr) throw enrollErr;
 
-      // PASO 3: Guardar el recibo en la tabla de pagos para la auditoría de caja
-      // 💡 NOTA: Para evitar que el Trigger altere este primer pago, podemos controlar
-      // si el trigger se ejecuta o simplemente insertar el pago sabiendo que el acumulado ya es correcto.
+      // Guardar el recibo en la tabla de pagos para la auditoría de caja
       if (paymentPayload.amount > 0 && newEnrollment) {
-        // Insertamos el recibo histórico. Como el trigger sumaría 400 + 400, para evitar el doble cobro
-        // en la inscripción inicial, este insert específico se registra directo.
-
         const { error: payErr } = await supabase.from("payments").insert({
           enrollment_id: newEnrollment.id,
           amount: Number(paymentPayload.amount),
@@ -127,7 +193,6 @@ export const InscriptionsProvider = ({ children }) => {
             paymentPayload.notes || "Inscripción inicial (Apartado en caja).",
         });
 
-        // Si el trigger sumó doble por el insert del paso 3, lo arreglamos forzando el reset en caliente:
         if (!payErr) {
           await supabase
             .from("enrollments")
@@ -137,7 +202,8 @@ export const InscriptionsProvider = ({ children }) => {
       }
 
       const targetSchoolId = studentForm.schoolId || courseData.schoolId;
-      await fetchEnrollments(targetSchoolId);
+      // 🔄 Refrescamos la primera página de la tabla de inmediato
+      await fetchEnrollments(targetSchoolId, { page: 1, limit: 10 });
 
       return { success: true };
     } catch (e) {
@@ -146,13 +212,13 @@ export const InscriptionsProvider = ({ children }) => {
       return { success: false, error: e.message };
     }
   };
-  // 3. Registrar abonos posteriores a una alumna (Liquidar saldos pendientes)
+
+  // 3. Registrar abonos posteriores a una alumna
   const addNewPayment = async (enrollmentId, schoolId, paymentPayload) => {
-    setLoading(true); // Encendemos el loading para bloquear clicks repetidos
+    setLoading(true);
     setError(null);
 
     try {
-      // 1. Insertamos el abono ÚNICAMENTE en la tabla de pagos
       const { error: payErr } = await supabase.from("payments").insert({
         enrollment_id: enrollmentId,
         amount: Number(paymentPayload.amount),
@@ -162,14 +228,10 @@ export const InscriptionsProvider = ({ children }) => {
 
       if (payErr) throw payErr;
 
-      // 2. ⏳ Pequeña pausa táctica de 150ms
-      // Esto le da tiempo al servidor de Supabase de terminar la ejecución del Trigger AFTER INSERT
       await new Promise((resolve) => setTimeout(resolve, 150));
 
-      // 3. 🔄 Sincronización Real con el Servidor
-      // En lugar de "adivinar" la matemática en React, mandamos a llamar a tu función fetchEnrollments
-      // para que traiga el arreglo limpio con el 'total_payment' que el Trigger calculó.
-      await fetchEnrollments(schoolId);
+      // 🔄 Sincronización Real con los parámetros actuales
+      await fetchEnrollments(schoolId, { page: 1, limit: 10 });
 
       return { success: true };
     } catch (e) {
@@ -180,13 +242,14 @@ export const InscriptionsProvider = ({ children }) => {
       setLoading(false);
     }
   };
+
   const fetchPaymentHistory = async (inscriptionId) => {
     try {
       const { data, error: err } = await supabase
         .from("payments")
         .select("*")
         .eq("enrollment_id", inscriptionId)
-        .order("created_at", { ascending: true }); // Orden cronológico
+        .order("created_at", { ascending: true });
 
       if (err) throw err;
       return { success: true, data };
@@ -201,10 +264,12 @@ export const InscriptionsProvider = ({ children }) => {
         enrollments,
         loading,
         error,
+        paginationData, // 🌸 Exportamos la paginación de la tabla
         fetchEnrollments,
         createAdministrativeInscription,
         addNewPayment,
         fetchPaymentHistory,
+        isFiltering,
       }}
     >
       {children}
@@ -212,7 +277,6 @@ export const InscriptionsProvider = ({ children }) => {
   );
 };
 
-// Hook personalizado para usarlo de forma express en tus componentes
 export const useInscriptions = () => {
   const context = useContext(InscriptionsContext);
   if (!context) {

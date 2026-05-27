@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -10,48 +10,49 @@ import {
   Paper,
   Stack,
 } from "@mui/material";
+import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../../../config/supabaseClient";
 import { useCursos } from "../../../context/CursoContext";
 import { useInscriptions } from "../../../context/InscriptionsContext";
 import SelectCourse from "../../../components/common/inscriptions/NewInscriptions/SelectCourse";
 import StudentData from "../../../components/common/inscriptions/NewInscriptions/StudentData";
 import PaymentInformation from "../../../components/common/inscriptions/NewInscriptions/PaymentInformation";
-import { useNavigate, useParams } from "react-router-dom";
 import { alerts } from "../../../utils/alerts";
+import { FormatCurrency } from "../../../utils/FormatCurrency";
 
-const NewInscription = ({}) => {
-  const params = useParams();
+const NewInscription = () => {
+  const { schoolId } = useParams();
   const navigate = useNavigate();
-  const { schoolId } = params;
 
-  // Estados de carga y catálogo
+  // 📥 Contextos del sistema
   const { createAdministrativeInscription } = useInscriptions();
   const { cursos } = useCursos();
-  const [loadingCourses, setLoadingCourses] = useState(false);
+
+  // ⚙️ Estados de control y carga
+  const [loadingCourses] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [isNewStudent, setIsNewStudent] = useState(true);
-  // Campos del Formulario
+
+  // 📝 Campos unificados del Formulario
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [studentId, setStudentId] = useState(null);
   const [formData, setFormData] = useState({
     course_id: "",
-    student_id: studentId, // Para vincular con un estudiante existente si se encuentra por teléfono
+    student_id: null,
     payment_amount: 0,
     payment_method: "cash", // 'cash' o 'card_terminal'
     notes: "",
   });
 
-  // Estado de disponibilidad del salón
+  // 📊 Estado de disponibilidad real en salón
   const [availability, setAvailability] = useState({
     total_enrolled: 0,
     capacity: 0,
     slots_left: 0,
   });
 
-  // 1. Cargar cursos activos de la escuela al abrir el modal
-
-  // 2. Monitorear cupo y sugerir pago mínimo cuando cambia el curso seleccionado
+  // 🔄 1. Monitorear cupos dinámicos y sugerir apartado mínimo al cambiar de curso
   const handleCourseChange = async (courseId) => {
     const course = cursos.find((c) => c.id === courseId);
     setSelectedCourse(course);
@@ -59,8 +60,8 @@ const NewInscription = ({}) => {
 
     if (!course) return;
 
-    // Consultamos la capacidad y cuántos inscritos activos/completados hay actualmente
     try {
+      // Consultamos el conteo real y exacto en Supabase de alumnos activos
       const { count, error: countErr } = await supabase
         .from("enrollments")
         .select("*", { count: "exact", head: true })
@@ -78,7 +79,7 @@ const NewInscription = ({}) => {
         slots_left,
       });
 
-      // Sugerir el monto mínimo de apartado en el input
+      // 🧮 Sugerir el porcentaje mínimo configurado en la base de datos (default 10%)
       const minPercentage = course.min_down_payment_percentage || 10;
       const minAmount = (course.costo * minPercentage) / 100;
 
@@ -89,96 +90,132 @@ const NewInscription = ({}) => {
       }));
     } catch (e) {
       console.error("Error validando cupo:", e.message);
+      setError("No se pudo verificar la disponibilidad del salón.");
     }
   };
 
-  // 3. Procesar el envío (Lógica de transacción manual)
+  // 🚀 2. Procesar el envío de la Inscripción
   const handleSubmit = async (e) => {
     e.preventDefault();
-    let initialStatus = "pending_payment";
-    const totalAmount = selectedCourse.costo;
-    const paidAmount = Number(formData.payment_amount);
 
-    if (paidAmount >= totalAmount) {
-      initialStatus = "completed"; // Liquidado por completo
-    } else if (paidAmount >= (totalAmount * 10) / 100) {
-      initialStatus = "active"; // Cumple con el apartado mínimo
+    // 🛑 VALIDACIÓN DE SEGURIDAD 1: Que exista un curso seleccionado
+    if (!selectedCourse) {
+      alerts.error(
+        "Falta información",
+        "Por favor, selecciona un curso antes de continuar.",
+      );
+      return;
     }
 
-    const studentData = {
-      studentId: studentId,
-    };
+    // 🛑 VALIDACIÓN DE SEGURIDAD 2: Que no supere el costo total
+    const totalAmount = Number(selectedCourse.costo || 0);
+    const paidAmount = Number(formData.payment_amount || 0);
+
+    if (paidAmount > totalAmount) {
+      alerts.error(
+        "Monto Inválido",
+        `El monto abonado no puede ser mayor al costo total del curso (${FormatCurrency(totalAmount)}).`,
+      );
+      return; // ✅ Corregido: Rompe la ejecución para evitar enviar basura al backend
+    }
+
+    // 🚦 Determinación del estatus inicial según las reglas de negocio
+    let initialStatus = "pending_payment";
+    const minRequired = (totalAmount * 10) / 100; // 10% mínimo reglamentario
+
+    if (paidAmount >= totalAmount) {
+      initialStatus = "completed"; // Liquidado al 100%
+    } else if (paidAmount >= minRequired) {
+      initialStatus = "active"; // Cumple con el enganche para considerarse apartado
+    }
+
+    // 🔒 Encendemos loader para evitar clicks fantasmas/duplicados
+    setSubmitting(true);
+
+    const studentData = { studentId };
+
     const inscriptionPayload = {
       course_id: formData.course_id,
       status: initialStatus,
-      total_amount: selectedCourse.costo,
-      costo: selectedCourse.costo,
-      payment_amount: formData.payment_amount,
+      total_amount: totalAmount,
+      costo: totalAmount,
+      payment_amount: paidAmount,
       schoolId,
     };
 
     const paymentPayload = {
-      amount: formData.payment_amount,
+      amount: paidAmount,
       payment_method: formData.payment_method,
       notes: formData.notes,
     };
 
-    const result = await createAdministrativeInscription(
-      studentData,
-      inscriptionPayload,
-      paymentPayload,
-    );
+    try {
+      const result = await createAdministrativeInscription(
+        studentData,
+        inscriptionPayload,
+        paymentPayload,
+      );
 
-    if (result.success) {
-      alerts.success("La suscripcion se ha creado de manera exitosa");
-      navigate(-1); // Se cierra de manera limpia y la tabla de fondo ya se actualizó sola.
+      if (result.success) {
+        alerts.success(
+          "¡Excelente!",
+          "La inscripción se ha registrado de manera exitosa.",
+        );
+        navigate(-1); // Regresa de manera fluida actualizando la tabla
+      } else {
+        setError(
+          result.error || "Ocurrió un error al procesar la inscripción.",
+        );
+      }
+    } catch (err) {
+      console.error("Error en Submit:", err);
+      setError("Error crítico de red al registrar la inscripción.");
+    } finally {
+      setSubmitting(false); // ✅ Saneamiento: Apagamos loader siempre
     }
   };
 
   const handleClose = () => {
-    setFormData({
-      course_id: "",
-      student_id: null,
-      payment_amount: 0,
-      payment_method: "cash",
-      notes: "",
-    });
-    setSelectedCourse(null);
-    setAvailability({ total_enrolled: 0, capacity: 0, slots_left: 0 });
-    setError(null);
     navigate(-1);
   };
 
   return (
     <Container maxWidth='md' sx={{ py: 4 }}>
-      {/* 🌸 ENCABEZADO DE LA PÁGINA */}
+      {/* 🌸 ENCABEZADO PREMIUM DE LA PÁGINA */}
       <Box sx={{ mb: 4 }}>
         <Typography
           variant='h4'
           sx={{
+            fontFamily: "'Playfair Display', serif",
             fontWeight: 900,
-            color: "#E2208C",
+            background: "linear-gradient(90deg, #E2208C 0%, #BE3C77 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
             mb: 1,
           }}
         >
-          ✨ Registrar Nueva Inscripción Manual
+          Registrar Inscripción Manual
         </Typography>
-        <Typography variant='body2' color='textSecondary'>
-          Completa los bloques informativos para dar de alta y procesar el pago
-          de la alumna.
+        <Typography
+          variant='body1'
+          sx={{ color: "#745E67", fontSize: "0.95rem" }}
+        >
+          Ingresa los datos para matricular y procesar el cobro en mostrador de
+          forma centralizada.
         </Typography>
       </Box>
 
-      {/* 📄 CONTENEDOR PRINCIPAL DEL FORMULARIO */}
+      {/* 📄 CONTENEDOR TIPO GLASSMORPHISM SUAVE */}
       <Paper
         component='form'
         onSubmit={handleSubmit}
         elevation={0}
         sx={{
           p: { xs: 3, md: 4 },
-          borderRadius: "16px",
-          backgroundColor: "#FFF9FA",
-          border: "1px solid #F9C4D9",
+          borderRadius: "24px",
+          backgroundColor: "#fff",
+          border: "1px solid rgba(249, 196, 217, 0.4)",
+          boxShadow: "0px 15px 45px rgba(226, 32, 140, 0.03)",
         }}
       >
         {error && (
@@ -188,11 +225,11 @@ const NewInscription = ({}) => {
         )}
 
         <Grid container spacing={3}>
-          {/* SECCIÓN 1: Selección del Curso y Validación de Salón */}
+          {/* SECCIÓN 1: Selección del Curso */}
           <Grid size={12}>
             <Typography
               variant='subtitle1'
-              sx={{ fontWeight: 800, color: "#BE3C77", mb: 1 }}
+              sx={{ fontWeight: 800, color: "#BE3C77", mb: 0.5 }}
             >
               1. Selección de Curso y Horarios
             </Typography>
@@ -210,10 +247,10 @@ const NewInscription = ({}) => {
 
           {/* SECCIÓN 2: Datos del Alumno */}
           <Grid size={12}>
-            <Divider sx={{ my: 1.5 }} />
+            <Divider sx={{ my: 1, borderColor: "rgba(240, 98, 146, 0.1)" }} />
             <Typography
               variant='subtitle1'
-              sx={{ fontWeight: 800, color: "#BE3C77", mb: 1 }}
+              sx={{ fontWeight: 800, color: "#BE3C77", mt: 1, mb: 0.5 }}
             >
               2. Información de la Alumna
             </Typography>
@@ -228,12 +265,12 @@ const NewInscription = ({}) => {
             setStudentId={setStudentId}
           />
 
-          {/* SECCIÓN 3: Gestión de Caja / Finanzas Manuales */}
+          {/* SECCIÓN 3: Gestión de Caja */}
           <Grid size={12}>
-            <Divider sx={{ my: 1.5 }} />
+            <Divider sx={{ my: 1, borderColor: "rgba(240, 98, 146, 0.1)" }} />
             <Typography
               variant='subtitle1'
-              sx={{ fontWeight: 800, color: "#BE3C77", mb: 1 }}
+              sx={{ fontWeight: 800, color: "#BE3C77", mt: 1, mb: 0.5 }}
             >
               3. Gestión de Caja y Finanzas
             </Typography>
@@ -244,7 +281,7 @@ const NewInscription = ({}) => {
 
         {/* 🔘 BOTONERA DE ACCIÓN INFERIOR */}
         <Box sx={{ mt: 4 }}>
-          <Divider sx={{ mb: 3 }} />
+          <Divider sx={{ mb: 3, borderColor: "rgba(240, 98, 146, 0.1)" }} />
           <Stack
             direction='row'
             spacing={2}
@@ -252,7 +289,13 @@ const NewInscription = ({}) => {
           >
             <Button
               onClick={handleClose}
-              sx={{ color: "#777", fontWeight: 700, px: 3 }}
+              disabled={submitting}
+              sx={{
+                color: "#745E67",
+                fontWeight: 700,
+                px: 3,
+                textTransform: "none",
+              }}
             >
               Cancelar
             </Button>
@@ -264,18 +307,21 @@ const NewInscription = ({}) => {
               }
               sx={{
                 background: "linear-gradient(90deg, #E2208C 0%, #F06292 100%)",
-                borderRadius: "12px",
+                borderRadius: "14px",
                 px: 5,
-                py: 1.5,
+                py: 1.6,
                 fontWeight: 700,
                 textTransform: "none",
-                boxShadow: "0 4px 14px rgba(226, 32, 140, 0.3)",
+                fontSize: "0.95rem",
+                boxShadow: "0 4px 14px rgba(226, 32, 140, 0.25)",
                 "&:hover": {
-                  boxShadow: "0 6px 20px rgba(226, 32, 140, 0.4)",
+                  background:
+                    "linear-gradient(90deg, #BE3C77 0%, #E2208C 100%)",
+                  boxShadow: "0 6px 20px rgba(226, 32, 140, 0.35)",
                 },
               }}
             >
-              {submitting ? "Inscribiendo..." : "Confirmar e Inscribir"}
+              {submitting ? "Procesando Alta..." : "Confirmar e Inscribir"}
             </Button>
           </Stack>
         </Box>

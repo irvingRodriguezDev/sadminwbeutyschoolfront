@@ -32,7 +32,7 @@ const SalonCard = ({ salon, handleAbrirEditor, handleDeleteSalon, index }) => {
   };
 
   return (
-    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 3 }} key={index}>
+    <Grid size={{ xs: 12, sm: 6, md: 6, lg: 4, xl: 3 }} key={index}>
       <Box
         component={motion.div}
         initial={{ opacity: 0, y: 15 }}
