@@ -30,7 +30,7 @@ const CardEscuela = ({ escuela, index }) => {
   };
 
   return (
-    <Grid size={{ xs: 12, sm: 6, md: 6, lg: 3 }}>
+    <>
       <Box
         component={motion.div}
         initial={{ opacity: 0, y: 15 }}
@@ -121,6 +121,17 @@ const CardEscuela = ({ escuela, index }) => {
               >
                 Academia
               </Typography>
+              <br />
+              <Typography
+                variant='caption'
+                sx={{
+                  color: "#9e9e9e",
+                  fontWeight: 600,
+                  letterSpacing: "0.5px",
+                }}
+              >
+                {escuela.perfil.email}
+              </Typography>
             </Box>
           </Box>
 
@@ -136,7 +147,7 @@ const CardEscuela = ({ escuela, index }) => {
             <LocationOnIcon
               sx={{
                 fontSize: 18,
-                color: "text.disabled",
+                color: "#f06292",
                 mt: 0.2,
               }}
             />
@@ -211,7 +222,7 @@ const CardEscuela = ({ escuela, index }) => {
                     })
                   }
                   sx={{
-                    color: "#d81b60",
+                    color: "#f06292",
                     bgcolor: "rgba(240,98,146,.06)",
                     transition: ".2s",
                     "&:hover": {
@@ -228,7 +239,7 @@ const CardEscuela = ({ escuela, index }) => {
                   size='small'
                   onClick={() => handleOpen(escuela)}
                   sx={{
-                    color: "#d81b60",
+                    color: "#f06292",
                     bgcolor: "rgba(240,98,146,.06)",
                     transition: ".2s",
                     "&:hover": {
@@ -251,7 +262,7 @@ const CardEscuela = ({ escuela, index }) => {
           school={selectedSchool}
         />
       )}
-    </Grid>
+    </>
   );
 };
 

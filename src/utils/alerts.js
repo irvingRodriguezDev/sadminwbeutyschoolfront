@@ -36,9 +36,10 @@ export const alerts = {
       position: "top-end",
       icon,
       title,
+      iconColor: "#f06292",
       showConfirmButton: false,
       timer: 3000,
-      timerProgressBar: true,
+      timerProgressBar: false,
       target: document.body,
     });
   },

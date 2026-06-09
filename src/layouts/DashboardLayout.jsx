@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Drawer,
@@ -40,7 +40,6 @@ const DashboardLayout = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
   const [needsOnBoarding, setNeedsOnBoarding] = useState(() => {
     const savedValue = localStorage.getItem("needsOnBoarding");
     if (savedValue === null) return true;
@@ -48,12 +47,15 @@ const DashboardLayout = () => {
   });
 
   // Estado que controla la apertura del panel de navegación
-  const [open, setOpen] = useState(true); // Cambiado a true por defecto para una carga más fluida en desktop
+  const [open, setOpen] = useState(false); // Cambiado a true por defecto para una carga más fluida en desktop
 
   const handleDrawerToggle = () => {
     setOpen(!open);
   };
-
+  const handleCompleteOnboarding = () => {
+    setNeedsOnBoarding(false); // Apaga el bloqueo del Onboarding
+    setOpen(true); // 🚀 Ejecuta la animación de apertura del menú AQUÍ Y SÓLO AQUÍ
+  };
   const menuItems = [
     {
       label: "Dashboard",
@@ -315,7 +317,7 @@ const DashboardLayout = () => {
         }}
       >
         <Container maxWidth='2xl'>
-          <Outlet />
+          <Outlet context={{ handleCompleteOnboarding }} />
         </Container>
       </Box>
     </Box>

@@ -127,7 +127,7 @@ const SuperAdminDashboard = () => {
         {/* Lista de Actividad Reciente */}
         <Grid size={{ xs: 12, md: 4 }}>
           <Paper
-            sx={{ p: 3, borderRadius: 2, height: 400, overflow: "hidden" }}
+            sx={{ p: 3, borderRadius: 2, height: "auto", overflow: "hidden" }}
           >
             <Typography variant='h6' fontWeight='bold' mb={2}>
               Últimos Registros

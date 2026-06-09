@@ -13,10 +13,11 @@ import {
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import CloudUploadRoundedIcon from "@mui/icons-material/CloudUploadRounded";
+import { useOutletContext } from "react-router-dom"; // 🌟 IMPORTANTE: Para comunicar con el layout padre
 import { alerts } from "../../utils/alerts";
 import { supabase } from "../../config/supabaseClient";
 import LocationPicker from "./LocationPiker";
-
+import BuildWebsiteSvg from "../../assets/build_website.svg";
 const steps = [
   "Identidad de la Academia",
   "Configuración de Pagos",
@@ -24,6 +25,10 @@ const steps = [
 ];
 
 const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
+  // 🌟 Extraemos la función inyectada por el Outlet de tu DashboardLayout
+  const outletContext = useOutletContext();
+  const handleCompleteOnboarding = outletContext?.handleCompleteOnboarding;
+
   // Intentamos recuperar el paso guardado por si Stripe recarga la app completa
   const [activeStep, setActiveStep] = useState(() => {
     const savedStep = localStorage.getItem("onboarding_step");
@@ -35,7 +40,7 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
   const [isSubiendoLogo, setIsSubiendoLogo] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-
+  const [isPreparando, setIsPreparando] = useState(false);
   // Estado temporal de Stripe en memoria local del asistente
   const [stripeConnected, setStripeConnected] = useState(() => {
     return localStorage.getItem("stripe_connected_local") === "true";
@@ -71,7 +76,6 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
     const accountId = queryParams.get("account_id");
 
     if (success === "true" && accountId) {
-      // 1. Guardamos localmente que Stripe se conectó SIN tocar la base de datos global aún
       setStripeConnected(true);
       localStorage.setItem("stripe_connected_local", "true");
       localStorage.setItem("temp_stripe_account_id", accountId);
@@ -128,7 +132,7 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
       } = await supabase.auth.getUser();
 
       // Antes de irnos a Stripe, guardamos que estamos en el paso 1
-      localStorage.setItem("onboarding_step", "1");
+      localStorage.setItem("needsOnBoarding", "true");
 
       const { data, error } = await supabase.functions.invoke(
         "stripe-connect",
@@ -147,10 +151,24 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
   };
 
   const handleNext = async () => {
-    if (activeStep === 0 && !logoUrl) {
-      alerts.error("Campo requerido", "Por favor sube el logo de la academia.");
-      return;
+    // 🌟 CORRECCIÓN: Ahora validamos logo y dirección obligatoria
+    if (activeStep === 0) {
+      if (!logoUrl) {
+        alerts.error(
+          "Campo requerido",
+          "Por favor sube el logo de la academia.",
+        );
+        return;
+      }
+      if (!locationData.address || !locationData.lat) {
+        alerts.error(
+          "Campo requerido",
+          "Por favor selecciona la ubicación exacta en el mapa.",
+        );
+        return;
+      }
     }
+
     if (activeStep === 1 && !stripeConnected) {
       alerts.error("Paso requerido", "Debes vincular tu cuenta de Stripe.");
       return;
@@ -163,7 +181,6 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
     }
   };
 
-  // EL CAMBIO RADICAL: Aquí se guarda TODO junto al final, garantizando consistencia
   const finalizarConfiguracion = async () => {
     setIsSaving(true);
     try {
@@ -173,7 +190,7 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
         address: locationData.address,
         location: `POINT(${locationData.lng} ${locationData.lat})`,
         logo_url: logoUrl,
-        stripe_account_id: tempAccountId || null, // Se inyecta aquí de manera segura
+        stripe_account_id: tempAccountId || null,
         stripe_onboarding_complete: tempAccountId ? true : false,
         updated_at: new Date(),
       };
@@ -185,23 +202,86 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
 
       if (error) throw error;
 
-      alerts.success("¡Configuración Exitosa!", "Tu academia está lista.");
+      // 🚀 PASO 1: Activamos la hermosa pantalla de transición
+      setIsSaving(false);
+      setIsPreparando(true);
 
-      // LIMPIEZA ABSOLUTA DE MEMORIA LOCAL
+      // 🧹 Limpieza de memoria local habitual
+      localStorage.setItem("needsOnBoarding", "false");
       localStorage.removeItem("locationData");
       localStorage.removeItem("logourl");
       localStorage.removeItem("onboarding_step");
       localStorage.removeItem("stripe_connected_local");
       localStorage.removeItem("temp_stripe_account_id");
 
-      onComplete(); // Notifica al componente superior que el flujo completo fue exitoso
+      // ⏳ PASO 2: Le damos 3 segundos de transición para deleite visual
+      setTimeout(() => {
+        // Desmonta el onboarding de forma reactiva y abre el menú lateral
+        if (handleCompleteOnboarding) {
+          handleCompleteOnboarding();
+        }
+        if (onComplete) onComplete();
+      }, 3500);
     } catch (error) {
-      alerts.error("Error", error.message);
-    } finally {
       setIsSaving(false);
+      alerts.error("Error", error.message);
     }
   };
+  // 🌟 Si está preparando la experiencia, mostramos esta vista a pantalla completa
+  if (isPreparando) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "60vh",
+          textAlign: "center",
+          p: 4,
+          animation: "fadeIn 0.5s ease-out",
+          "@keyframes fadeIn": {
+            from: { opacity: 0, transform: "translateY(10px)" },
+            to: { opacity: 1, transform: "translateY(0)" },
+          },
+        }}
+      >
+        {/* Spinner concéntrico doble estilo Premium SaaS */}
+        <Box
+          sx={{
+            position: "relative",
+            display: "inline-flex",
+            mb: 4,
+            width: "100%",
+            maxWidth: 280,
+          }}
+        >
+          <img
+            src={BuildWebsiteSvg}
+            alt='Preparando sitio'
+            style={{ width: "100%", height: "auto" }}
+          />
+        </Box>
 
+        <Typography
+          variant='h5'
+          sx={{ fontWeight: 800, color: "#1a1a1a", mb: 1 }}
+        >
+          Estamos preparando tu experiencia
+        </Typography>
+
+        <Typography
+          variant='body2'
+          sx={{ color: "text.secondary", maxWidth: 360, lineHeight: 1.6 }}
+        >
+          Configurando salones virtuales, pasarelas de pago y tu nueva identidad
+          de marca. Tardará solo unos segundos...
+        </Typography>
+      </Box>
+    );
+  }
+
+  // Abajo continúa tu "return ( <Box sx={{ width: "100%", mt: 2 }}> ..." original intacto
   return (
     <Box sx={{ width: "100%", mt: 2 }}>
       <Stepper activeStep={activeStep} alternativeLabel>
@@ -318,7 +398,9 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
               >
                 Dirección Geográfica
               </Typography>
+              {/* Le pasamos el valor inicial recuperado de memoria si existe */}
               <LocationPicker
+                initialValue={locationData}
                 onLocationSelect={(data) => setLocationData(data)}
               />
               {locationData.address && (
@@ -390,10 +472,10 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
                   variant='h6'
                   sx={{ fontWeight: 800, color: "#2e7d32" }}
                 >
-                  ¡Terminal de Pagos Lista!
+                  ¡Cuenta de Pagos Lista!
                 </Typography>
                 <Typography variant='body2' color='text.secondary'>
-                  Stripe Express se ha conectado de forma transparente a tu
+                  Stripe Express se ha conectado de forma correcta a tu
                   academia.
                 </Typography>
               </>
@@ -421,17 +503,17 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
               color='text.secondary'
               sx={{ maxWidth: 400 }}
             >
-              La identidad corporativa, coordenadas de mapas y pasarela bancaria
+              La identidad corporativa, coordenadas de mapas y cuenta bancaria
               se han unificado correctamente.
             </Typography>
           </Box>
         )}
 
-        {/* BOTONES DE CONTROL DE NAVEGACIÓN */}
+        {/* BOTONES DE CONTROL */}
         <Box
           sx={{
             display: "flex",
-            justifyContent: "flex-end",
+            justifyMod: "flex-end",
             gap: 1,
             pt: 2,
             borderTop: "1px solid rgba(0,0,0,0.05)",

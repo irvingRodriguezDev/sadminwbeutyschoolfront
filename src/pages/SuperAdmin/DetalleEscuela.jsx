@@ -41,7 +41,7 @@ const StatCard = ({ icon, value, label }) => {
       sx={{
         p: 2,
         borderRadius: "12px",
-        border: "1px solid rgba(216, 27, 96, 0.6)",
+        border: "1px solid rgba(240, 98, 146, 0.6)",
         textAlign: "center",
       }}
     >
@@ -50,7 +50,7 @@ const StatCard = ({ icon, value, label }) => {
           display: "flex",
           justifyContent: "center",
           mb: 1,
-          color: "#d81b60",
+          color: "#f06292",
         }}
       >
         {icon}
@@ -77,7 +77,7 @@ const InfoRow = ({ icon, label, value }) => {
         py: 1.5,
       }}
     >
-      <Box sx={{ color: "#d81b60" }}>{icon}</Box>
+      <Box sx={{ color: "#f06292" }}>{icon}</Box>
 
       <Box>
         <Typography
@@ -124,8 +124,8 @@ export default function DetalleEscuela({ open, onClose, school }) {
               sx={{
                 width: 58,
                 height: 58,
-                bgcolor: "rgba(216,27,96,.6)",
-                color: "#d81b60",
+                bgcolor: "rgba(229, 176, 195, 0.6)",
+                color: "#f06292",
                 fontWeight: 800,
               }}
             >
@@ -133,18 +133,26 @@ export default function DetalleEscuela({ open, onClose, school }) {
             </Avatar>
 
             <Box>
-              <Typography variant='h5' fontWeight={800} color='primary'>
+              <Typography
+                variant='h5'
+                fontWeight={800}
+                sx={{ color: "#f06292" }}
+              >
                 {data.name}
               </Typography>
 
-              <Typography variant='body2' color='primary' fontWeight={700}>
+              <Typography
+                variant='body2'
+                sx={{ color: "#f06292" }}
+                fontWeight={700}
+              >
                 Información completa de la escuela
               </Typography>
             </Box>
           </Box>
 
           <IconButton onClick={onClose}>
-            <CloseIcon />
+            <CloseIcon sx={{ color: "red" }} />
           </IconButton>
         </Box>
       </DialogTitle>
@@ -186,7 +194,7 @@ export default function DetalleEscuela({ open, onClose, school }) {
               sx={{
                 p: 3,
                 borderRadius: "12px",
-                border: "1px solid rgba(216,27,96,.6)",
+                border: "1px solid rgba(240,98,146,.6)",
               }}
             >
               <Typography variant='h6' fontWeight={700} mb={2}>
@@ -229,7 +237,7 @@ export default function DetalleEscuela({ open, onClose, school }) {
               sx={{
                 p: 3,
                 borderRadius: "12px",
-                border: "1px solid rgba(216,27,96,.6)",
+                border: "1px solid rgba(240,98,146,.6)",
                 mb: 3,
               }}
             >
@@ -240,7 +248,7 @@ export default function DetalleEscuela({ open, onClose, school }) {
               <Divider sx={{ mb: 2 }} />
 
               <Chip
-                icon={<CheckCircleIcon />}
+                icon={<CheckCircleIcon sx={{ color: "#2e7d32" }} />}
                 label='Conectado'
                 sx={{
                   bgcolor: "rgba(46,125,50,.08)",
@@ -274,7 +282,7 @@ export default function DetalleEscuela({ open, onClose, school }) {
               sx={{
                 p: 3,
                 borderRadius: "12px",
-                border: "1px solid rgba(216,27,96,.6)",
+                border: "1px solid rgba(240,98,146,.6)",
               }}
             >
               <Typography variant='h6' fontWeight={700} mb={2}>
@@ -312,9 +320,9 @@ export default function DetalleEscuela({ open, onClose, school }) {
                     startIcon={<OpenInNewIcon />}
                     variant='contained'
                     sx={{
-                      bgcolor: "#d81b60",
+                      bgcolor: "#f06292",
                       "&:hover": {
-                        bgcolor: "#c2185b",
+                        bgcolor: "#f06292",
                       },
                     }}
                   >
