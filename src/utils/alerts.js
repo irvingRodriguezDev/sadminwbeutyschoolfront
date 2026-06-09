@@ -31,25 +31,15 @@ export const alerts = {
 
   // Toast (Notificación pequeña en la esquina)
   toast: (title, icon = "success") => {
-    const Toast = Swal.mixin({
+    return Swal.fire({
       toast: true,
       position: "top-end",
+      icon,
+      title,
       showConfirmButton: false,
       timer: 3000,
       timerProgressBar: true,
-      // 🚀 LA SOLUCIÓN: Forzamos a que el contenedor del Toast flote sobre los modales de MUI
-      didOpen: (toast) => {
-        toast.onmouseenter = Swal.stopTimer;
-        toast.onmouseleave = Swal.resumeTimer;
-        // Inyectamos el z-index de forma directa al elemento del Toast
-        toast.style.zIndex = "10600";
-      },
-    });
-
-    return Toast.fire({
-      icon,
-      title,
-      iconColor: icon === "success" ? "#f06292" : undefined,
+      target: document.body,
     });
   },
   // Confirmación de acción (Ej: Borrar algo)

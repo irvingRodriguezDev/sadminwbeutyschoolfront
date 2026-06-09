@@ -98,13 +98,93 @@ export const SuperAdminProvider = ({ children }) => {
       // Guardar en un nuevo estado (ej. )
       setChartData(dataGrafica);
 
-      // 2. Obtener las escuelas asociados
+      // Hoy es 2026-06-09
+      const hoyISO = new Date().toLocaleDateString("sv-SE", {
+        timeZone: "America/Mexico_City",
+      });
+
+      // Calcular fecha límite de hace 20 días
+      const fechaHace20Dias = new Date();
+      fechaHace20Dias.setDate(fechaHace20Dias.getDate() - 20);
+      const hace20DiasISOString = fechaHace20Dias.toLocaleDateString("sv-SE", {
+        timeZone: "America/Mexico_City",
+      });
+
       const { data: escuelasData, errorEscuelasActivas } = await supabase
         .from("schools")
-        .select("*")
+        .select(
+          `
+          *, 
+          perfil:profiles(id, email, rol), 
+          total_estudiantes:students(count),
+          cursos:cursos(
+            id,
+            status,
+            fecha_inicio,
+            enrollments:enrollments(
+              student_id,
+              payments:payments(id, amount, created_at)
+            )
+          )
+        `,
+        )
         .order("name", { ascending: true });
+
       if (errorEscuelasActivas) throw errorEscuelasActivas;
-      setEscuelasActivas(escuelasData);
+
+      const escuelasFormateadas = (escuelasData || []).map((escuela) => {
+        // Aplanar perfil
+        const perfilFormateado = Array.isArray(escuela.perfil)
+          ? escuela.perfil[0] || null
+          : escuela.perfil;
+
+        // Extraer total de estudiantes desde el conteo directo
+        const totalEstudiantes = Array.isArray(escuela.total_estudiantes)
+          ? escuela.total_estudiantes[0]?.count || 0
+          : escuela.total_estudiantes?.count || 0;
+
+        let totalCursosActivosFuturos = 0;
+        let ingresosUltimos20Dias = 0;
+
+        if (Array.isArray(escuela.cursos)) {
+          escuela.cursos.forEach((curso) => {
+            // 🌟 Conteo estricto de cursos vigentes (status active y fecha >= hoy)
+            if (curso.status === "active" && curso.fecha_inicio) {
+              if (curso.fecha_inicio >= hoyISO) {
+                totalCursosActivosFuturos++;
+              }
+            }
+
+            // Procesar pagos si el RLS ya permite ver los enrollments
+            if (Array.isArray(curso.enrollments)) {
+              curso.enrollments.forEach((inscripcion) => {
+                const pagos = inscripcion.payments;
+                if (pagos) {
+                  const listaPagos = Array.isArray(pagos) ? pagos : [pagos];
+                  listaPagos.forEach((pago) => {
+                    if (pago.created_at) {
+                      const fechaPagoISO = pago.created_at.substring(0, 10);
+                      if (fechaPagoISO >= hace20DiasISOString) {
+                        ingresosUltimos20Dias += pago.amount || 0;
+                      }
+                    }
+                  });
+                }
+              });
+            }
+          });
+        }
+
+        return {
+          ...escuela,
+          perfil: perfilFormateado,
+          total_cursos: totalCursosActivosFuturos,
+          total_estudiantes: totalEstudiantes,
+          ingresos_20_dias: ingresosUltimos20Dias,
+        };
+      });
+
+      setEscuelasActivas(escuelasFormateadas);
     } catch (error) {
       console.error("Error en SuperAdminContext:", error.message);
     } finally {
@@ -114,7 +194,7 @@ export const SuperAdminProvider = ({ children }) => {
 
   useEffect(() => {
     fetchGlobalData();
-  }, [fetchGlobalData]);
+  }, []);
 
   return (
     <SuperAdminContext.Provider

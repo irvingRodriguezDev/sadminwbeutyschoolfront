@@ -8,7 +8,6 @@ import {
   Typography,
   Divider,
   IconButton,
-  Avatar,
   Container,
   ListItemIcon,
   ListItemText,
@@ -31,28 +30,25 @@ import { supabase } from "../config/supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import StyledNavItem from "../components/common/SidebarItem";
 import LogoWapizima from "../assets/logo_wapizima.webp";
-// El ancho cuando está abierto
+
+// El ancho cuando está abierto el menú lateral
 const drawerWidth = 280;
 
 const DashboardLayout = () => {
   const { profile } = useAuth();
-
   const location = useLocation();
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const [needsOnBoarding, setNeedsOnBoarding] = useState(() => {
     const savedValue = localStorage.getItem("needsOnBoarding");
-
-    // Si no hay nada guardado, podemos asumir 'true' por defecto (necesita onboarding)
     if (savedValue === null) return true;
-
-    // Convertimos el string "true" o "false" a un booleano real
     return savedValue === "true";
   });
 
-  // Ahora este estado controla ambos: el temporal en móvil y el persistente en desktop
-  const [open, setOpen] = useState(false);
+  // Estado que controla la apertura del panel de navegación
+  const [open, setOpen] = useState(true); // Cambiado a true por defecto para una carga más fluida en desktop
 
   const handleDrawerToggle = () => {
     setOpen(!open);
@@ -131,9 +127,15 @@ const DashboardLayout = () => {
         <Typography
           variant='h6'
           fontWeight='bold'
-          sx={{ color: "#f06292", ml: 1 }}
+          sx={{ color: "#f06292", ml: 1, width: "100%" }}
         >
-          <img src={LogoWapizima} width={"100%"} height={50} />
+          <img
+            src={LogoWapizima}
+            width={"100%"}
+            height={50}
+            style={{ objectFit: "contain" }}
+            alt='Wapizima Logo'
+          />
         </Typography>
         <IconButton
           onClick={handleDrawerToggle}
@@ -162,12 +164,7 @@ const DashboardLayout = () => {
             >
               {item.icon}
             </ListItemIcon>
-            <ListItemText
-              primary={item.label}
-              // primaryTypographyProps={{
-              //   fontWeight: location.pathname === item.path ? 700 : 500,
-              // }}
-            />
+            <ListItemText primary={item.label} />
           </StyledNavItem>
         ))}
       </List>
@@ -195,14 +192,15 @@ const DashboardLayout = () => {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
           }),
-          ...(open && {
-            ml: `${drawerWidth}px`,
-            width: { sm: `calc(100% - ${drawerWidth}px)` },
-            transition: theme.transitions.create(["width", "margin"], {
-              easing: theme.transitions.easing.sharp,
-              duration: theme.transitions.duration.enteringScreen,
+          ...(open &&
+            !isMobile && {
+              ml: `${drawerWidth}px`,
+              width: `calc(100% - ${drawerWidth}px)`,
+              transition: theme.transitions.create(["width", "margin"], {
+                easing: theme.transitions.easing.sharp,
+                duration: theme.transitions.duration.enteringScreen,
+              }),
             }),
-          }),
           background: "rgba(252, 248, 250, 0.8)",
           backdropFilter: "blur(10px)",
           borderBottom: "1px solid rgba(240, 98, 146, 0.1)",
@@ -217,10 +215,7 @@ const DashboardLayout = () => {
                 aria-label='open drawer'
                 onClick={handleDrawerToggle}
                 edge='start'
-                sx={{
-                  mr: 2,
-                  ...(open && { display: { xs: "block", sm: "none" } }),
-                }}
+                sx={{ mr: 2 }}
               >
                 <MenuIcon />
               </IconButton>
@@ -228,7 +223,7 @@ const DashboardLayout = () => {
             <Typography variant='body1' fontWeight={600} sx={{ color: "#444" }}>
               {location.pathname === "/dashboard"
                 ? profile?.rol === "superadmin"
-                  ? "Panel Super administrador"
+                  ? "Panel Super Administrador"
                   : profile?.name
                 : location.pathname.replace("/", "").toUpperCase()}
             </Typography>
@@ -259,7 +254,7 @@ const DashboardLayout = () => {
         sx={{
           width: { sm: open ? drawerWidth : 0 },
           flexShrink: { sm: 0 },
-          transition: "width 0.3s",
+          transition: "width 0.3s ease",
         }}
       >
         {/* Móvil */}
@@ -279,7 +274,7 @@ const DashboardLayout = () => {
         {/* Desktop Colapsable */}
         <Drawer
           variant='persistent'
-          open={open}
+          open={open && !isMobile}
           sx={{
             display: { xs: "none", sm: "block" },
             "& .MuiDrawer-paper": {
@@ -296,6 +291,7 @@ const DashboardLayout = () => {
         </Drawer>
       </Box>
 
+      {/* 🌟 CONTENIDO PRINCIPAL: Ajustado con animaciones fluidas alineadas al AppBar */}
       <Box
         component='main'
         sx={{
@@ -303,17 +299,19 @@ const DashboardLayout = () => {
           p: 3,
           width: "100%",
           mt: 8,
-          transition: theme.transitions.create("margin", {
+          minHeight: "calc(100vh - 64px)",
+          transition: theme.transitions.create(["margin", "width"], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
           }),
-          ...(open && {
-            transition: theme.transitions.create("margin", {
-              easing: theme.transitions.easing.easeOut,
-              duration: theme.transitions.duration.enteringScreen,
+          ...(!isMobile &&
+            open && {
+              width: `calc(100% - ${drawerWidth}px)`,
+              transition: theme.transitions.create(["margin", "width"], {
+                easing: theme.transitions.easing.easeOut,
+                duration: theme.transitions.duration.enteringScreen,
+              }),
             }),
-            ml: { sm: 0 }, // Ajuste opcional para no empujar el contenido bruscamente
-          }),
         }}
       >
         <Container maxWidth='2xl'>

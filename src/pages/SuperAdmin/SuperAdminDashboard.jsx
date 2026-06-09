@@ -147,7 +147,7 @@ const SuperAdminDashboard = () => {
                     {registro.name}
                   </Typography>
                   <Typography variant='caption' color='textSecondary'>
-                    Registrada hace:{" "}
+                    Registrada el:{" "}
                     {new Date(registro.created_at).toLocaleDateString()}
                   </Typography>
                 </Box>

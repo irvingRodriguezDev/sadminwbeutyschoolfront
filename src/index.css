@@ -129,3 +129,15 @@ code {
   text-transform: uppercase;
   letter-spacing: 1px;
 }
+
+.swal2-container {
+  z-index: 999999 !important;
+}
+
+.swal2-top-end {
+  top: 10px !important;
+}
+
+.swal2-toast {
+  margin-top: 0 !important;
+}
