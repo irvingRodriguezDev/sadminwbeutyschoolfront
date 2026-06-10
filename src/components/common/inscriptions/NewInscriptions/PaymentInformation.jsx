@@ -51,7 +51,7 @@ const PaymentInformation = ({ formData, setFormData }) => {
         >
           <MenuItem value='cash'>💵 Efectivo (Caja Chica)</MenuItem>
           <MenuItem value='card_terminal'>
-            💳 Terminal Bancaria del Plantel
+            💳 Terminal Bancaria de la academia
           </MenuItem>
         </TextField>
       </Grid>

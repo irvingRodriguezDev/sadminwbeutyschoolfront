@@ -224,7 +224,7 @@ export default function DetalleEscuela({ open, onClose, school }) {
               <InfoRow
                 icon={<LanguageIcon />}
                 label='Sitio Web'
-                value={`${import.meta.env.VITE_URL_CLIENT}plantel/${data.slug}`}
+                value={`${import.meta.env.VITE_URL_CLIENT}academia/${data.slug}`}
               />
             </Paper>
           </Grid>
@@ -302,7 +302,7 @@ export default function DetalleEscuela({ open, onClose, school }) {
                   variant='outlined'
                   onClick={() =>
                     copiarLink({
-                      data: `${import.meta.env.VITE_URL_CLIENT}plantel/${data.slug}`,
+                      data: `${import.meta.env.VITE_URL_CLIENT}academia/${data.slug}`,
                     })
                   }
                 >
@@ -310,7 +310,7 @@ export default function DetalleEscuela({ open, onClose, school }) {
                 </Button>
 
                 <Link
-                  to={`${import.meta.env.VITE_URL_CLIENT}plantel/${data.slug}`}
+                  to={`${import.meta.env.VITE_URL_CLIENT}academia/${data.slug}`}
                   target='_blank'
                   rel='noopener noreferrer'
                   style={{ textDecoration: "none" }}

@@ -57,7 +57,7 @@ const ListaEscuelas = () => {
           Escuelas Registradas
         </Typography>
         <Typography variant='body2' color='text.secondary' fontWeight='500'>
-          Administración de planteles globales de Wapizima Beauty School
+          Administración de academias globales de Wapizima Beauty School
         </Typography>
       </Grid>
       <Grid size={12} sx={{ display: "flex", justifyContent: "flex-end" }}>

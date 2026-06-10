@@ -326,7 +326,7 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
                 Identidad Visual
               </Typography>
               <Typography variant='body2' color='text.secondary'>
-                Sube el logo oficial de tu plantel para la emisión de
+                Sube el logo oficial de tu academia para la emisión de
                 certificados.
               </Typography>
             </Box>

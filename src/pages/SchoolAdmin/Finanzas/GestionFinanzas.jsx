@@ -124,8 +124,8 @@ const GestionFinanzas = () => {
             Control Financiero y Caja
           </Typography>
           <Typography variant='body2' color='textSecondary' sx={{ ml: 3 }}>
-            Monitorea los ingresos del plantel, revisa cortes de caja diarios y
-            gestiona la cartera vencida.
+            Monitorea los ingresos de la academia, revisa cortes de caja diarios
+            y gestiona la cartera vencida.
           </Typography>
         </Box>
         <Button

@@ -218,7 +218,7 @@ const CardEscuela = ({ escuela, index }) => {
                   size='small'
                   onClick={() =>
                     copiarLink({
-                      data: `${import.meta.env.VITE_URL_CLIENT}plantel/${escuela.slug}`,
+                      data: `${import.meta.env.VITE_URL_CLIENT}academia/${escuela.slug}`,
                     })
                   }
                   sx={{
