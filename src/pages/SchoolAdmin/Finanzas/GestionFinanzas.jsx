@@ -80,7 +80,7 @@ const GestionFinanzas = () => {
     // 4. Construimos el mensaje usando \n explícitos para saltos de línea perfectos
     // Usamos los asteriscos (*) que WhatsApp reconoce de forma nativa para poner texto en NEGRITA
     const textoMensaje =
-      `Hola, *${row.studentName}* 👋🏻. Te saludamos de ${nombreEscuela}.\n\n` +
+      `Hola, *${row.studentName}*. Te saludamos de ${nombreEscuela}.\n\n` +
       `Te recordamos de manera atenta que cuentas con un saldo pendiente de *${FormatCurrency(row.debt)}* ` +
       `en tu inscripcion al curso *${row.courseTitle}*, el cual dara inicio el dia *${fechaFormateada}*.\n\n` +
       `Puedes liquidar o realizar un abono directamente en el mostrador antes de iniciar tu sesion. ¡Que tengas un excelente dia!`;

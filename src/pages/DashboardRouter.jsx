@@ -2,13 +2,23 @@ import React from "react";
 import SuperAdminDashboard from "./SuperAdmin/SuperAdminDashboard";
 import SchoolAdminDashboard from "./SchoolAdmin/SchoolAdminDashboard";
 import SchoolAdminArea from "./SchoolAdmin/SchoolAdminArea"; // El nuevo componente que creamos
-import { Box, Typography } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import { useAuth } from "../context/AuthContext";
 import LoadingScreen from "../components/common/LoadingScreen";
+import { supabase } from "../config/supabaseClient";
+import { useNavigate } from "react-router-dom";
 
 const DashboardRouter = () => {
   const { profile, loading } = useAuth();
-
+  const navigate = useNavigate();
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      navigate("/login", { replace: true });
+    } catch (error) {
+      console.error("Error:", error.message);
+    }
+  };
   if (loading) {
     return <LoadingScreen message='Cargando tu panel personalizado...' />;
   }
@@ -22,6 +32,9 @@ const DashboardRouter = () => {
         <Typography color='textSecondary'>
           Contacta al soporte técnico si crees que esto es un error.
         </Typography>
+        <Button onClick={handleLogout} variant='contained' sx={{ mt: 10 }}>
+          Cerrar sesión
+        </Button>
       </Box>
     );
   }

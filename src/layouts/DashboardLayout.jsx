@@ -244,7 +244,7 @@ const DashboardLayout = () => {
               >
                 {profile?.rol === "superadmin"
                   ? "Super Administrador"
-                  : "Gestor de Academia"}
+                  : "Administrador de Academia"}
               </Typography>
             </Box>
           </Box>

@@ -31,16 +31,16 @@ const Cobrance = ({ debtors, COLORS, handleWhatsAppCobro }) => {
           <TableRow
             sx={{
               "& .MuiTableCell-head": {
-                backgroundColor: "rgba(211, 47, 47, 0.02)",
+                backgroundColor: "rgba(240, 98, 145, 1)",
                 fontWeight: 800,
-                color: COLORS.dark,
+                color: "#fff",
               },
             }}
           >
             <TableCell sx={{ pl: 3 }}>Alumna Morosa</TableCell>
             <TableCell>Taller / Curso Pendiente</TableCell>
             <TableCell>Progreso Financiero</TableCell>
-            <TableCell align='right'>Saldo en Contra</TableCell>
+            <TableCell align='right'>Saldo pendiente</TableCell>
             <TableCell align='center' sx={{ pr: 3 }}>
               Recordatorio
             </TableCell>

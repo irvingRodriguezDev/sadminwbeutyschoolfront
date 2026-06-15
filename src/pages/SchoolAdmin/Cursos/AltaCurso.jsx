@@ -101,6 +101,7 @@ const AltaCursoStepper = () => {
             formData.tipo_curso === "Taller"
               ? formData.fecha_inicio
               : formData.fecha_fin,
+          status: "active",
         },
       ]);
 
@@ -235,6 +236,7 @@ const AltaCursoStepper = () => {
                 onChange={(content) =>
                   setFormData({ ...formData, descripcion: content })
                 }
+                placeholder='Ingresa la descripción del curso, en este espacio'
                 style={{ height: "150px", marginBottom: "45px" }}
               />
             </Box>
@@ -244,6 +246,7 @@ const AltaCursoStepper = () => {
             <Box sx={{ mb: 2 }}>
               <TiptapEditor
                 value={formData.lista_materiales}
+                placeholder='Captura la lista de materiales en esta sección'
                 onChange={(content) =>
                   setFormData({ ...formData, lista_materiales: content })
                 }

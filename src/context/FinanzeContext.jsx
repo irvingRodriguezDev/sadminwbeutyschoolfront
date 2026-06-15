@@ -108,7 +108,7 @@ export const FinanceProvider = ({ children }) => {
           p.payment_method === "card"
         )
           cardToday += monto;
-        else if (p.payment_method === "transfer") transferToday += monto;
+        else if (p.payment_method === "stripe_online") transferToday += monto;
 
         return {
           id: p.id,
