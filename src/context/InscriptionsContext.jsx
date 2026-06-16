@@ -165,49 +165,66 @@ export const InscriptionsProvider = ({ children }) => {
   ) => {
     setError(null);
     try {
-      // Crear inscripción con valor inicial
+      const costoTotal = Number(courseData.costo);
+      const abonoInicial = Number(paymentPayload.amount);
+
+      // 1. Calculamos el saldo pendiente inicial
+      const saldoRestante = costoTotal - abonoInicial;
+      const esLiquidacionTotal = abonoInicial >= costoTotal;
+
+      // 2. Si liquida de un solo golpe, generamos el token QR único de taquilla desde el inicio
+      const statusPago = esLiquidacionTotal ? "completed" : "active";
+      const tokenQR = esLiquidacionTotal
+        ? `WBS-${crypto.randomUUID().substring(0, 8).toUpperCase()}`
+        : null;
+
+      // 3. Crear inscripción con la estructura e importes reales calculados
       const { data: newEnrollment, error: enrollErr } = await supabase
         .from("enrollments")
         .insert({
           course_id: courseData.course_id || courseData.id,
           student_id: studentForm.studentId,
-          total_amount: courseData.costo,
-          payment_amount: Number(paymentPayload.amount),
-          status:
-            Number(paymentPayload.amount) >= Number(courseData.costo)
-              ? "completed"
-              : "active",
+          total_amount: costoTotal, // Usando tus nombres estandarizados de columnas
+          status: statusPago,
+          qr_code_token: tokenQR, // 🔥 Sellado si pagó el 100% en un solo movimiento
+          registration_source: "panel_admin",
+          payment_amount: abonoInicial,
         })
         .select()
         .single();
 
       if (enrollErr) throw enrollErr;
 
-      // Guardar el recibo en la tabla de pagos para la auditoría de caja
-      if (paymentPayload.amount > 0 && newEnrollment) {
+      // 4. Guardar el recibo en la tabla de pagos para la auditoría de caja
+      if (abonoInicial > 0 && newEnrollment) {
         const { error: payErr } = await supabase.from("payments").insert({
           enrollment_id: newEnrollment.id,
-          amount: Number(paymentPayload.amount),
+          amount: abonoInicial,
           payment_method: paymentPayload.payment_method,
           notes:
-            paymentPayload.notes || "Inscripción inicial (Apartado en caja).",
+            paymentPayload.notes ||
+            (esLiquidacionTotal
+              ? "Inscripción inicial (Liquidación total en caja)."
+              : "Inscripción inicial (Apartado parcial en caja)."),
         });
 
-        if (!payErr) {
-          await supabase
-            .from("enrollments")
-            .update({ payment_amount: Number(paymentPayload.amount) })
-            .eq("id", newEnrollment.id);
+        if (payErr) {
+          // Si por alguna razón falla el log de pagos, registramos el error pero no rompemos el flujo
+          console.error(
+            "Error al registrar auditoría de pago inicial:",
+            payErr.message,
+          );
         }
       }
 
       const targetSchoolId = studentForm.schoolId || courseData.schoolId;
-      // 🔄 Refrescamos la primera página de la tabla de inmediato
+
+      // 🔄 Refrescamos la primera página de la tabla de inmediato con los nuevos datos
       await fetchEnrollments(targetSchoolId, { page: 1, limit: 10 });
 
       return { success: true };
     } catch (e) {
-      console.error("Error en flujo de inscripción:", e.message);
+      console.error("Error en flujo de inscripción administrativa:", e.message);
       setError(e.message);
       return { success: false, error: e.message };
     }
@@ -219,6 +236,7 @@ export const InscriptionsProvider = ({ children }) => {
     setError(null);
 
     try {
+      // 1. Insertar el nuevo abono en la tabla de pagos
       const { error: payErr } = await supabase.from("payments").insert({
         enrollment_id: enrollmentId,
         amount: Number(paymentPayload.amount),
@@ -228,6 +246,63 @@ export const InscriptionsProvider = ({ children }) => {
 
       if (payErr) throw payErr;
 
+      // 2. Traer la inscripción actual con su costo total y sus pagos acumulados
+      const { data: enrollment, error: fetchErr } = await supabase
+        .from("enrollments")
+        .select(
+          `
+          id,
+          total_amount,
+          payments (amount)
+        `,
+        )
+        .eq("id", enrollmentId)
+        .single();
+
+      if (fetchErr) throw fetchErr;
+
+      // 3. Calcular el total pagado sumando todos los abonos existentes
+      const totalPagado = enrollment.payments.reduce(
+        (sum, p) => sum + Number(p.amount),
+        0,
+      );
+      const saldoPendiente = enrollment.total_amount - totalPagado;
+
+      // 4. Si el saldo está liquidado (<= 0), disparamos la actualización del QR
+      if (saldoPendiente === 0) {
+        console.log(
+          "🟢 ¡Entrando al bloque de liquidación! Generando Token...",
+        );
+
+        const secureToken = `WBS-${crypto.randomUUID().substring(0, 8).toUpperCase()}`;
+
+        console.log("Datos a enviar a Supabase:", {
+          status: "completed",
+          qr_code_token: secureToken,
+        });
+
+        const { data: updateData, error: updateErr } = await supabase
+          .from("enrollments")
+          .update({
+            status: "completed",
+            qr_code_token: secureToken, // 🔥 Sellado inmutable
+          })
+          .eq("id", enrollmentId)
+          .select(); // 👈 El .select() obliga a Supabase a retornar el registro modificado para corroborar
+        console.log("====================================");
+        console.log(updateData, "la data actualizada");
+        console.log("====================================");
+        // 🔥 OBLIGATORIO: Si Supabase rechaza la query, esto detendrá el flujo y mandará el error al catch
+        if (updateErr) {
+          console.error("❌ Supabase rechazó el UPDATE interno:", updateErr);
+          throw new Error(
+            `Error en Update: ${updateErr.message} - Detalle: ${updateErr.details}`,
+          );
+        }
+
+        console.log("✅ Registro actualizado con éxito en la BD:", updateData);
+      }
+
       await new Promise((resolve) => setTimeout(resolve, 150));
 
       // 🔄 Sincronización Real con los parámetros actuales
@@ -235,7 +310,10 @@ export const InscriptionsProvider = ({ children }) => {
 
       return { success: true };
     } catch (e) {
-      console.error("Error en el flujo de caja (React):", e.message);
+      console.error(
+        "🚨 Error completo detectado en el flujo de caja:",
+        e.message,
+      );
       setError(e.message);
       return { success: false, error: e.message };
     } finally {

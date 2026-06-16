@@ -15,8 +15,6 @@ import {
   SendAndArchive as TransferIcon,
 } from "@mui/icons-material";
 const IndicatorsFinances = ({ COLORS, cashboxSummary }) => {
-  console.log(cashboxSummary, "la suma del corte de caja");
-
   return (
     <Grid container spacing={3} sx={{ mb: 4 }}>
       {/* Total Ingresos Hoy */}

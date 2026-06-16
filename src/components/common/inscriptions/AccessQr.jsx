@@ -26,7 +26,7 @@ const AccessQr = ({ enrollmentData, isLiquidado, restante, COLORS }) => {
           }}
         >
           <QRCodeSVG
-            value={enrollmentData.id}
+            value={enrollmentData.qr_code_token}
             size={150}
             fgColor={COLORS.dark}
             level='H'

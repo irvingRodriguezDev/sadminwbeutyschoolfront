@@ -21,8 +21,7 @@ const SelectCourse = ({
   selectedCourse,
 }) => {
   const detectarCambiosCursos = (value) => {
-    setSelectedCourse(value.data);
-    handleCourseChange(value.value);
+    handleCourseChange(value);
   };
 
   return (
