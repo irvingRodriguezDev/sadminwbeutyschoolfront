@@ -90,19 +90,22 @@ const GestionCursos = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      {/* 🌸 ENCABEZADO */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 4,
-        }}
+    <Grid container spacing={2}>
+      <Grid size={12}>
+        <Typography variant='h4'>Mis Cursos y Talleres</Typography>
+      </Grid>
+      <Grid size={{ xs: 12, md: 10 }}>
+        <BuscadorGlobal
+          search={search}
+          setSearch={setSearch}
+          placeholder='Buscar curso por título...'
+          maxWidth='100%'
+        />
+      </Grid>
+      <Grid
+        size={{ xs: 12, md: 2 }}
+        sx={{ display: "flex", justifyContent: "end" }}
       >
-        <Typography variant='h4' fontWeight='900'>
-          Mis Cursos y Talleres
-        </Typography>
         <Link to={"/crear-curso-nuevo"} style={{ textDecoration: "none" }}>
           <Button
             variant='contained'
@@ -119,16 +122,8 @@ const GestionCursos = () => {
             + Nuevo Curso
           </Button>
         </Link>
-      </Box>
-
-      {/* 🔍 BARRA DE BÚSQUEDA PREMIUM */}
-
-      <BuscadorGlobal
-        search={search}
-        setSearch={setSearch}
-        placeholder='Buscar curso por título...'
-      />
-      <Box sx={{ height: 4, mb: 2 }}>
+      </Grid>
+      <Grid size={12}>
         {isFiltering && (
           <LinearProgress
             sx={{
@@ -137,59 +132,58 @@ const GestionCursos = () => {
             }}
           />
         )}
-      </Box>
-      {/* 🗂️ CONTROL DE CARGA Y RENDER */}
-      {loadingCursos ? (
-        <LoadingScreen message='Cargando Lista de Cursos...' />
-      ) : (
-        <>
-          <Grid container spacing={3}>
-            {cursos.map((curso) => (
-              <Grid size={{ xs: 12, sm: 6, md: 6, lg: 3 }} key={curso.id}>
-                <TarjetaCurso
-                  curso={curso}
-                  onEdit={() => handleEdit(curso)}
-                  onDelete={() => eliminarCurso(curso.id, curso.titulo)}
-                />
-              </Grid>
-            ))}
-            {cursos.length === 0 && <EmptyCursosAnimated />}
-          </Grid>
+        {loadingCursos ? (
+          <LoadingScreen message='Cargando Lista de Cursos...' />
+        ) : (
+          <>
+            <Grid container spacing={3}>
+              {cursos.map((curso) => (
+                <Grid size={{ xs: 12, sm: 6, md: 6, lg: 3 }} key={curso.id}>
+                  <TarjetaCurso
+                    curso={curso}
+                    onEdit={() => handleEdit(curso)}
+                    onDelete={() => eliminarCurso(curso.id, curso.titulo)}
+                  />
+                </Grid>
+              ))}
+              {cursos.length === 0 && <EmptyCursosAnimated />}
+            </Grid>
 
-          {/* 📑 PAGINACIÓN ATRACTIVA DE MUI (Solo aparece si hay más de 1 página) */}
-          {paginationData?.totalPages > 1 && (
-            <PaginadorGlobal
-              totalPages={paginationData?.totalPages}
-              currentPage={page}
-              onPageChange={setPage} // Setea directo el número devuelto por el hijo
-            />
-          )}
-
-          {/* 📝 MODAL DE EDICIÓN */}
-          {cursoSeleccionado && (
-            <Dialog
-              open={openEdit}
-              onClose={handleCloseEdit}
-              fullWidth
-              maxWidth='lg'
-            >
-              <EditarCursoStepper
-                curso={cursoSeleccionado}
-                onClose={handleCloseEdit}
-                // ✅ Pasamos la función correcta inyectando los parámetros del estado actual
-                refreshCursos={() =>
-                  fetchCursos(profile?.school_id, {
-                    page,
-                    limit: 8,
-                    search: debounceSearchText,
-                  })
-                }
+            {/* 📑 PAGINACIÓN ATRACTIVA DE MUI (Solo aparece si hay más de 1 página) */}
+            {paginationData?.totalPages > 1 && (
+              <PaginadorGlobal
+                totalPages={paginationData?.totalPages}
+                currentPage={page}
+                onPageChange={setPage} // Setea directo el número devuelto por el hijo
               />
-            </Dialog>
-          )}
-        </>
-      )}
-    </Box>
+            )}
+
+            {/* 📝 MODAL DE EDICIÓN */}
+            {cursoSeleccionado && (
+              <Dialog
+                open={openEdit}
+                onClose={handleCloseEdit}
+                fullWidth
+                maxWidth='lg'
+              >
+                <EditarCursoStepper
+                  curso={cursoSeleccionado}
+                  onClose={handleCloseEdit}
+                  // ✅ Pasamos la función correcta inyectando los parámetros del estado actual
+                  refreshCursos={() =>
+                    fetchCursos(profile?.school_id, {
+                      page,
+                      limit: 8,
+                      search: debounceSearchText,
+                    })
+                  }
+                />
+              </Dialog>
+            )}
+          </>
+        )}
+      </Grid>
+    </Grid>
   );
 };
 

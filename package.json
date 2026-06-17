@@ -38,7 +38,8 @@
     "recharts": "^3.8.1",
     "sweetalert2": "^11.26.24",
     "sweetalert2-react-content": "^5.1.2",
-    "use-debounce": "^10.1.1"
+    "use-debounce": "^10.1.1",
+    "@yudiel/react-qr-scanner": "^2.6.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

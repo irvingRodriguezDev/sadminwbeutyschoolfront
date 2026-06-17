@@ -79,7 +79,6 @@ const EmptySalonesAnimated = ({ onNuevoSalon }) => {
         variant='body1'
         color='textSecondary'
         mb={4}
-        maxWidth={420}
         sx={{ lineHeight: 1.6, fontSize: "1.05rem" }}
       >
         Tu catálogo de salones está listo para cobrar vida. Registra tu primer

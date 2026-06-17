@@ -71,7 +71,7 @@ const CardEscuela = ({ escuela, index }) => {
               left: 0,
               right: 0,
               height: 4,
-              bgcolor: "#f06292",
+              bgcolor: "#e21d8c",
             }}
           />
 
@@ -89,7 +89,7 @@ const CardEscuela = ({ escuela, index }) => {
                 width: 44,
                 height: 44,
                 bgcolor: "rgba(240,98,146,.12)",
-                color: "#d81b60",
+                color: "#e21d8c",
                 fontWeight: 800,
                 fontSize: "1rem",
               }}
@@ -147,7 +147,7 @@ const CardEscuela = ({ escuela, index }) => {
             <LocationOnIcon
               sx={{
                 fontSize: 18,
-                color: "#f06292",
+                color: "#e21d8c",
                 mt: 0.2,
               }}
             />
@@ -222,7 +222,7 @@ const CardEscuela = ({ escuela, index }) => {
                     })
                   }
                   sx={{
-                    color: "#f06292",
+                    color: "#e21d8c",
                     bgcolor: "rgba(240,98,146,.06)",
                     transition: ".2s",
                     "&:hover": {
@@ -239,7 +239,7 @@ const CardEscuela = ({ escuela, index }) => {
                   size='small'
                   onClick={() => handleOpen(escuela)}
                   sx={{
-                    color: "#f06292",
+                    color: "#e21d8c",
                     bgcolor: "rgba(240,98,146,.06)",
                     transition: ".2s",
                     "&:hover": {

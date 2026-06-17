@@ -44,7 +44,6 @@ const ListaEscuelas = () => {
   return (
     <Grid container spacing={2}>
       {/* HEADER DE CONTROL */}
-
       <Grid size={12}>
         <Typography
           variant='h4'
@@ -60,28 +59,7 @@ const ListaEscuelas = () => {
           Administración de academias globales de Wapizima Beauty School
         </Typography>
       </Grid>
-      <Grid size={12} sx={{ display: "flex", justifyContent: "flex-end" }}>
-        <Link to='/registrar-escuela' style={{ textDecoration: "none" }}>
-          <Button
-            variant='contained'
-            startIcon={<Add />}
-            disableElevation
-            sx={{
-              bgcolor: "#d81b60",
-              color: "#fff",
-              px: 3,
-              py: 1.2,
-              borderRadius: "12px",
-              fontWeight: "700",
-              textTransform: "none",
-              "&:hover": { bgcolor: "#1a1a1a" },
-            }}
-          >
-            Nueva Escuela
-          </Button>
-        </Link>
-      </Grid>
-      <Grid size={12}>
+      <Grid size={{ x: 12, md: 10 }}>
         <BuscadorGlobal
           search={search}
           setSearch={setSearch}
@@ -89,6 +67,33 @@ const ListaEscuelas = () => {
           maxWidth='100%'
         />
       </Grid>
+      <Grid
+        size={{ xs: 12, md: 2 }}
+        sx={{ display: "flex", justifyContent: "flex-end" }}
+      >
+        <Link to='/registrar-escuela' style={{ textDecoration: "none" }}>
+          <Button
+            variant='contained'
+            startIcon={<Add />}
+            fullWidth
+            disableElevation
+            sx={{
+              bgcolor: "#e21d8c",
+              color: "#fff",
+              px: 3,
+              py: 1.2,
+              height: "55px",
+              borderRadius: "12px",
+              fontWeight: "700",
+              textTransform: "none",
+              "&:hover": { bgcolor: "#e21d8c" },
+            }}
+          >
+            Nueva Escuela
+          </Button>
+        </Link>
+      </Grid>
+
       {/* REJILLA DE ESCUELAS */}
       {search !== null && escuelas.length > 0
         ? escuelas.map((escuela, index) => (

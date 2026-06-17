@@ -30,7 +30,7 @@ import { supabase } from "../config/supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import StyledNavItem from "../components/common/SidebarItem";
 import LogoWapizima from "../assets/logo_wapizima.webp";
-
+import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 // El ancho cuando está abierto el menú lateral
 const drawerWidth = 280;
 
@@ -97,6 +97,12 @@ const DashboardLayout = () => {
       label: "Finanzas",
       icon: <RequestQuoteIcon />,
       path: "/finanzas",
+      roles: ["school_admin"],
+    },
+    {
+      label: "Scanner",
+      icon: <QrCodeScannerIcon />,
+      path: "/scanner-asistencia",
       roles: ["school_admin"],
     },
   ];

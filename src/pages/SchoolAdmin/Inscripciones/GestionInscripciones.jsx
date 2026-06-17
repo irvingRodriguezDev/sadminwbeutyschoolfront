@@ -43,73 +43,71 @@ const GestionInscripciones = () => {
   }, [debounceSearchText]);
 
   return (
-    <Box sx={{ p: 3 }}>
-      {/* 🌸 ENCABEZADO */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 4,
-        }}
-      >
-        <Typography variant='h4' fontWeight='900'>
-          Mis Inscripciones
-        </Typography>
-        <Link
-          to={`/crear-inscripcion/${profile?.school_id}`}
-          style={{ textDecoration: "none" }}
-        >
-          <Button
-            variant='contained'
-            sx={{
-              background: "linear-gradient(90deg, #E2208C 0%, #F06292 100%)",
-              borderRadius: "12px",
-              fontWeight: 700,
-              px: 3,
-              py: 1.2,
-              textTransform: "none",
-              boxShadow: "0 4px 12px rgba(240, 98, 146, 0.3)",
-            }}
-          >
-            + Nueva Inscripción
-          </Button>
-        </Link>
-      </Box>
-
-      {/* 🔍 COMPONENTE GLOBAL DE BÚSQUEDA (Filtra por Alumna o Teléfono) */}
-      <BuscadorGlobal
-        search={search}
-        setSearch={setSearch}
-        placeholder='Buscar por alumna o teléfono...'
-      />
-      <Box sx={{ height: 4, mb: 2 }}>
-        {isFiltering && (
-          <LinearProgress
-            sx={{
-              bgcolor: "#FFF9FA",
-              "& .MuiLinearProgress-bar": { bgcolor: "#F06292" },
-            }}
-          />
-        )}
-      </Box>
-      {/* 📋 LISTADO DE REGISTROS */}
+    <>
       <Grid container spacing={2}>
-        <InscriptionsList
-          enrollments={enrollments}
-          loading={loading}
-          isFiltering={isFiltering}
-          schoolId={profile?.school_id}
-        />
+        <Grid size={12}>
+          <Typography variant='h4'>Mis Inscripciones</Typography>
+        </Grid>
+        <Grid size={{ xs: 12, lg: 10 }}>
+          <BuscadorGlobal
+            search={search}
+            setSearch={setSearch}
+            placeholder='Buscar por alumna o teléfono...'
+            maxWidth='100%'
+          />
+        </Grid>
+        <Grid
+          size={{ xs: 12, lg: 2 }}
+          sx={{ display: "flex", justifyContent: "center" }}
+        >
+          <Link
+            to={`/crear-inscripcion/${profile?.school_id}`}
+            style={{ textDecoration: "none" }}
+          >
+            <Button
+              variant='contained'
+              size='large'
+              fullWidth
+              sx={{
+                background: "linear-gradient(90deg, #E2208C 0%, #F06292 100%)",
+                borderRadius: "12px",
+                fontWeight: 700,
+                px: 3,
+                py: 1.2,
+                height: "60px",
+                textTransform: "none",
+                boxShadow: "0 4px 12px rgba(240, 98, 146, 0.3)",
+              }}
+            >
+              + Nueva Inscripción
+            </Button>
+          </Link>
+        </Grid>
+        <Grid size={12}>
+          <Box sx={{ height: 4, mb: 2 }}>
+            {isFiltering && (
+              <LinearProgress
+                sx={{
+                  bgcolor: "#FFF9FA",
+                  "& .MuiLinearProgress-bar": { bgcolor: "#F06292" },
+                }}
+              />
+            )}
+          </Box>
+          <InscriptionsList
+            enrollments={enrollments}
+            loading={loading}
+            isFiltering={isFiltering}
+            schoolId={profile?.school_id}
+          />
+          <PaginadorGlobal
+            totalPages={paginationData?.totalPages}
+            currentPage={page}
+            onPageChange={setPage}
+          />
+        </Grid>
       </Grid>
-
-      {/* 📑 COMPONENTE GLOBAL DE PAGINACIÓN */}
-      <PaginadorGlobal
-        totalPages={paginationData?.totalPages}
-        currentPage={page}
-        onPageChange={setPage}
-      />
-    </Box>
+    </>
   );
 };
 

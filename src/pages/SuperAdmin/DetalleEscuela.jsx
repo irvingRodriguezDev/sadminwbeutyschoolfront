@@ -41,7 +41,7 @@ const StatCard = ({ icon, value, label }) => {
       sx={{
         p: 2,
         borderRadius: "12px",
-        border: "1px solid rgba(240, 98, 146, 0.6)",
+        border: "1px solid #E21D8C",
         textAlign: "center",
       }}
     >
@@ -50,7 +50,7 @@ const StatCard = ({ icon, value, label }) => {
           display: "flex",
           justifyContent: "center",
           mb: 1,
-          color: "#f06292",
+          color: "#E21D8C",
         }}
       >
         {icon}
@@ -125,7 +125,7 @@ export default function DetalleEscuela({ open, onClose, school }) {
                 width: 58,
                 height: 58,
                 bgcolor: "rgba(229, 176, 195, 0.6)",
-                color: "#f06292",
+                color: "#e21d8c",
                 fontWeight: 800,
               }}
             >
@@ -136,14 +136,14 @@ export default function DetalleEscuela({ open, onClose, school }) {
               <Typography
                 variant='h5'
                 fontWeight={800}
-                sx={{ color: "#f06292" }}
+                sx={{ color: "#e21d8c" }}
               >
                 {data.name}
               </Typography>
 
               <Typography
                 variant='body2'
-                sx={{ color: "#f06292" }}
+                sx={{ color: "#e21d8c" }}
                 fontWeight={700}
               >
                 Información completa de la escuela
@@ -194,7 +194,7 @@ export default function DetalleEscuela({ open, onClose, school }) {
               sx={{
                 p: 3,
                 borderRadius: "12px",
-                border: "1px solid rgba(240,98,146,.6)",
+                border: "1px solid rgba(226,29,140,.6)",
               }}
             >
               <Typography variant='h6' fontWeight={700} mb={2}>
@@ -204,25 +204,25 @@ export default function DetalleEscuela({ open, onClose, school }) {
               <Divider sx={{ mb: 2 }} />
 
               <InfoRow
-                icon={<SchoolIcon />}
+                icon={<SchoolIcon sx={{ color: "#E21D8C" }} />}
                 label='Escuela'
                 value={data.name}
               />
 
               <InfoRow
-                icon={<LocationOnIcon />}
+                icon={<LocationOnIcon sx={{ color: "#E21D8C" }} />}
                 label='Dirección'
                 value={data.address}
               />
 
               <InfoRow
-                icon={<EmailIcon />}
+                icon={<EmailIcon sx={{ color: "#E21D8C" }} />}
                 label='Correo'
                 value={data.perfil?.email}
               />
 
               <InfoRow
-                icon={<LanguageIcon />}
+                icon={<LanguageIcon sx={{ color: "#E21D8C" }} />}
                 label='Sitio Web'
                 value={`${import.meta.env.VITE_URL_CLIENT}academia/${data.slug}`}
               />
@@ -237,7 +237,7 @@ export default function DetalleEscuela({ open, onClose, school }) {
               sx={{
                 p: 3,
                 borderRadius: "12px",
-                border: "1px solid rgba(240,98,146,.6)",
+                border: "1px solid rgba(226,29,140,.6)",
                 mb: 3,
               }}
             >
@@ -248,11 +248,11 @@ export default function DetalleEscuela({ open, onClose, school }) {
               <Divider sx={{ mb: 2 }} />
 
               <Chip
-                icon={<CheckCircleIcon sx={{ color: "#2e7d32" }} />}
+                icon={<CheckCircleIcon style={{ color: "#e21d8c" }} />}
                 label='Conectado'
                 sx={{
-                  bgcolor: "rgba(46,125,50,.08)",
-                  color: "#2e7d32",
+                  bgcolor: "transparent",
+                  color: "#e21d8c",
                   fontWeight: 700,
                   mb: 2,
                 }}
@@ -282,7 +282,7 @@ export default function DetalleEscuela({ open, onClose, school }) {
               sx={{
                 p: 3,
                 borderRadius: "12px",
-                border: "1px solid rgba(240,98,146,.6)",
+                border: "1px solid rgba(226,29,140,.6)",
               }}
             >
               <Typography variant='h6' fontWeight={700} mb={2}>
@@ -305,6 +305,7 @@ export default function DetalleEscuela({ open, onClose, school }) {
                       data: `${import.meta.env.VITE_URL_CLIENT}academia/${data.slug}`,
                     })
                   }
+                  sx={{ color: "#E21D8C", borderColor: "#E21D8C" }}
                 >
                   Copiar URL Pública
                 </Button>
@@ -320,9 +321,9 @@ export default function DetalleEscuela({ open, onClose, school }) {
                     startIcon={<OpenInNewIcon />}
                     variant='contained'
                     sx={{
-                      bgcolor: "#f06292",
+                      bgcolor: "#E21D8C",
                       "&:hover": {
-                        bgcolor: "#f06292",
+                        bgcolor: "#E21D8C",
                       },
                     }}
                   >

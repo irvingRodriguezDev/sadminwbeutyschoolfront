@@ -35,7 +35,7 @@ const LatestInscriptions = ({ ultimasInscripciones = [] }) => {
               >
                 <Avatar
                   sx={{
-                    bgcolor: i % 2 === 0 ? "#f06292" : "#7b1fa2",
+                    bgcolor: i % 2 === 0 ? "#E21D8C" : "#E21D8C",
                     fontWeight: "bold",
                   }}
                 >

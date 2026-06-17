@@ -56,7 +56,7 @@ const CardsDashboard = ({ metrics }) => {
           title='Salones Creados'
           value={metrics.salonesCount}
           icon={<MeetingRoom />}
-          color='#7b1fa2'
+          color='#E21D8C'
         />
       </Grid>
       <Grid size={{ xs: 12, sm: 6, md: 6, lg: 3, xl: 3 }}>
@@ -64,7 +64,7 @@ const CardsDashboard = ({ metrics }) => {
           title='Cursos Activos'
           value={metrics.cursosActivosCount}
           icon={<AutoStories />}
-          color='#f06292'
+          color='#E21D8C'
         />
       </Grid>
       <Grid size={{ xs: 12, sm: 6, md: 6, lg: 3, xl: 3 }}>
@@ -72,7 +72,7 @@ const CardsDashboard = ({ metrics }) => {
           title='Total Alumnos'
           value={metrics.totalAlumnosCount}
           icon={<People />}
-          color='#2196f3'
+          color='#E21D8C'
         />
       </Grid>
       <Grid size={{ xs: 12, sm: 6, md: 6, lg: 3, xl: 3 }}>
@@ -80,7 +80,7 @@ const CardsDashboard = ({ metrics }) => {
           title='Próximos Talleres'
           value={metrics.proximosTalleresCount}
           icon={<CalendarMonth />}
-          color='#4caf50'
+          color='#E21D8C  '
         />
       </Grid>
     </Grid>

@@ -40,49 +40,50 @@ const GestionSalones = () => {
     }
   };
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 4 }}>
-        <Typography variant='h4' fontWeight='bold'>
-          Mis Salones
-        </Typography>
-        <Button
-          variant='contained'
-          onClick={() => setModalOpen(true)}
-          sx={{ bgcolor: "#f06292", borderRadius: 1 }}
-        >
-          + Nuevo Salón
-        </Button>
-      </Box>
-
-      {loadingSchool ? (
-        <Typography>Cargando salones...</Typography>
-      ) : (
-        <Grid container spacing={3}>
-          {salones.map((salon) => (
-            <SalonCard
-              salon={salon}
-              handleAbrirEditor={handleAbrirEditor}
-              handleDeleteSalon={handleDeleteSalon}
-              index={salon.id}
-              key={salon.id}
-            />
-          ))}
-          {salones.length === 0 && (
-            <EmptySalones onNuevoSalon={() => setModalOpen(true)} />
-          )}
+    <>
+      <Grid container spacing={2}>
+        <Grid size={12}>
+          <Typography variant='h4' fontWeight='bold'>
+            Mis Salones
+          </Typography>
         </Grid>
-      )}
-
-      {/* El Modal de Alta */}
-      <AltaSalon open={modalOpen} onClose={() => setModalOpen(false)} />
-      {editarSalon && (
-        <EditarSalon
-          open={openEditar}
-          onClose={() => setEditarSalon(false)}
-          salon={editarSalon}
-        />
-      )}
-    </Box>
+        <Grid size={12} sx={{ display: "flex", justifyContent: "end" }}>
+          <Button
+            variant='contained'
+            onClick={() => setModalOpen(true)}
+            sx={{ bgcolor: "#f06292", borderRadius: 1 }}
+          >
+            + Nuevo Salón
+          </Button>
+        </Grid>
+        {loadingSchool ? (
+          <Typography>Cargando salones...</Typography>
+        ) : (
+          <>
+            {salones.map((salon) => (
+              <SalonCard
+                salon={salon}
+                handleAbrirEditor={handleAbrirEditor}
+                handleDeleteSalon={handleDeleteSalon}
+                index={salon.id}
+                key={salon.id}
+              />
+            ))}
+            {salones.length === 0 && (
+              <EmptySalones onNuevoSalon={() => setModalOpen(true)} />
+            )}
+          </>
+        )}
+        <AltaSalon open={modalOpen} onClose={() => setModalOpen(false)} />
+        {editarSalon && (
+          <EditarSalon
+            open={openEditar}
+            onClose={() => setEditarSalon(false)}
+            salon={editarSalon}
+          />
+        )}
+      </Grid>
+    </>
   );
 };
 
