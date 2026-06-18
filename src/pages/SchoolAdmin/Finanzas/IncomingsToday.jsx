@@ -89,9 +89,11 @@ const IncomingsToday = ({ transactions, COLORS }) => {
                     label={
                       row.method === "cash"
                         ? "Efectivo"
-                        : row.method === "transfer"
-                          ? "Transferencia"
-                          : "Terminal TPV"
+                        : row.method === "bank_transfer"
+                          ? "Transf. Bancaria"
+                          : row.method === "stripe_online"
+                            ? "Stripe"
+                            : row.method === "card_terminal" && "Terminal TPV"
                     }
                     size='small'
                     sx={{
@@ -100,15 +102,19 @@ const IncomingsToday = ({ transactions, COLORS }) => {
                       backgroundColor:
                         row.method === "cash"
                           ? "#e8f5e9"
-                          : row.method === "transfer"
-                            ? "#fff3e0"
-                            : "#e1f5fe",
+                          : row.method === "card_terminal"
+                            ? "#E1F5FE"
+                            : row.method === "stripe_online"
+                              ? "#FFF3E0"
+                              : row.method === "bank_transfer" && "#FDE0F1",
                       color:
                         row.method === "cash"
                           ? COLORS.success
-                          : row.method === "transfer"
-                            ? COLORS.warning
-                            : "#0288d1",
+                          : row.method === "card_terminal"
+                            ? "#228CD3"
+                            : row.method === "stripe_online"
+                              ? "#ED6C0E"
+                              : row.method === "bank_transfer" && "#E8408F",
                     }}
                   />
                 </TableCell>
@@ -129,7 +135,18 @@ const IncomingsToday = ({ transactions, COLORS }) => {
                 </TableCell>
                 <TableCell
                   align='right'
-                  sx={{ pr: 3, fontWeight: 800, color: COLORS.success }}
+                  sx={{
+                    pr: 3,
+                    fontWeight: 800,
+                    color:
+                      row.method === "cash"
+                        ? COLORS.success
+                        : row.method === "card_terminal"
+                          ? "#228CD3"
+                          : row.method === "stripe_online"
+                            ? "#ED6C0E"
+                            : row.method === "bank_transfer" && "#E8408F",
+                  }}
                 >
                   {FormatCurrency(row.amount)}
                 </TableCell>

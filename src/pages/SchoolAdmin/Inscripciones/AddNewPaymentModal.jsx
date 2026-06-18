@@ -223,7 +223,7 @@ const AddNewPaymentModal = ({ open, onClose, enrollmentData, schoolId }) => {
                 type='number'
                 label='Monto a Cobrar'
                 required
-                value={amount}
+                value={Number(amount).toFixed(2)}
                 onChange={(e) => setAmount(e.target.value)}
                 slotProps={{
                   input: {
@@ -254,9 +254,12 @@ const AddNewPaymentModal = ({ open, onClose, enrollmentData, schoolId }) => {
                   "& .MuiOutlinedInput-root": { borderRadius: "14px" },
                 }}
               >
-                <MenuItem value='cash'>💵 Efectivo (Caja Chica)</MenuItem>
+                <MenuItem value='cash'>💵 Efectivo (Caja)</MenuItem>
                 <MenuItem value='card_terminal'>
                   💳 Terminal Física del Local
+                </MenuItem>
+                <MenuItem value='bank_transfer'>
+                  📲 Transferencia Bancaria
                 </MenuItem>
               </TextField>
             </Grid>

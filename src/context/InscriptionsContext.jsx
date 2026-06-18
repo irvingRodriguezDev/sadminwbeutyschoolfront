@@ -270,16 +270,7 @@ export const InscriptionsProvider = ({ children }) => {
 
       // 4. Si el saldo está liquidado (<= 0), disparamos la actualización del QR
       if (saldoPendiente === 0) {
-        console.log(
-          "🟢 ¡Entrando al bloque de liquidación! Generando Token...",
-        );
-
         const secureToken = `WBS-${crypto.randomUUID().substring(0, 8).toUpperCase()}`;
-
-        console.log("Datos a enviar a Supabase:", {
-          status: "completed",
-          qr_code_token: secureToken,
-        });
 
         const { data: updateData, error: updateErr } = await supabase
           .from("enrollments")
@@ -289,9 +280,6 @@ export const InscriptionsProvider = ({ children }) => {
           })
           .eq("id", enrollmentId)
           .select(); // 👈 El .select() obliga a Supabase a retornar el registro modificado para corroborar
-        console.log("====================================");
-        console.log(updateData, "la data actualizada");
-        console.log("====================================");
         // 🔥 OBLIGATORIO: Si Supabase rechaza la query, esto detendrá el flujo y mandará el error al catch
         if (updateErr) {
           console.error("❌ Supabase rechazó el UPDATE interno:", updateErr);
@@ -299,8 +287,6 @@ export const InscriptionsProvider = ({ children }) => {
             `Error en Update: ${updateErr.message} - Detalle: ${updateErr.details}`,
           );
         }
-
-        console.log("✅ Registro actualizado con éxito en la BD:", updateData);
       }
 
       await new Promise((resolve) => setTimeout(resolve, 150));

@@ -70,7 +70,10 @@ const HistoryPayments = ({ loadingPayments, payments, COLORS }) => {
                           ? "💵 Efectivo"
                           : p.payment_method === "card_terminal"
                             ? "💳 Terminal"
-                            : "🌐 Stripe"
+                            : p.payment_method === "stripe_online"
+                              ? "🌐 Stripe"
+                              : p.payment_method === "bank_transfer" &&
+                                "📲 Transferencia Bancaria"
                       }
                       size='small'
                       sx={{
@@ -84,11 +87,22 @@ const HistoryPayments = ({ loadingPayments, payments, COLORS }) => {
                 secondary={
                   // 💥 REEMPLAZO CLAVE: Cambiamos <Box> por un <Stack> y le decimos que renderice como "span"
                   // Al ser un "span" a nivel HTML, respeta las reglas de no meter bloques dentro de un párrafo <p>
-                  <Stack
-                    component='span'
-                    spacing={0.5}
-                    sx={{ mt: 0.5, display: "block" }}
-                  >
+                  <>
+                    {p.notes && (
+                      <Typography
+                        variant='caption'
+                        display='block'
+                        component='span' // 💡 Evita que este Typography cree otro párrafo interno
+                        sx={{
+                          color: "text.primary",
+                          fontStyle: "italic",
+                          mt: 0.2,
+                        }}
+                      >
+                        "{p.notes}"
+                      </Typography>
+                    )}
+                    <br />
                     <Typography
                       variant='caption'
                       color='textSecondary'
@@ -104,21 +118,7 @@ const HistoryPayments = ({ loadingPayments, payments, COLORS }) => {
                         minute: "2-digit",
                       })}
                     </Typography>
-                    {p.notes && (
-                      <Typography
-                        variant='caption'
-                        display='block'
-                        component='span' // 💡 Evita que este Typography cree otro párrafo interno
-                        sx={{
-                          color: "text.primary",
-                          fontStyle: "italic",
-                          mt: 0.2,
-                        }}
-                      >
-                        "{p.notes}"
-                      </Typography>
-                    )}
-                  </Stack>
+                  </>
                 }
               />
             </ListItem>

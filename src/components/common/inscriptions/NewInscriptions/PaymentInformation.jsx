@@ -49,10 +49,11 @@ const PaymentInformation = ({ formData, setFormData }) => {
             setFormData({ ...formData, payment_method: e.target.value })
           }
         >
-          <MenuItem value='cash'>💵 Efectivo (Caja Chica)</MenuItem>
+          <MenuItem value='cash'>💵 Efectivo (Caja)</MenuItem>
           <MenuItem value='card_terminal'>
             💳 Terminal Bancaria de la academia
           </MenuItem>
+          <MenuItem value='bank_transfer'>📲 Transferencia Bancaria</MenuItem>
         </TextField>
       </Grid>
 

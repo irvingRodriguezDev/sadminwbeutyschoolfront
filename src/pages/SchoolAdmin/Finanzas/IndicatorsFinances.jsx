@@ -18,7 +18,7 @@ const IndicatorsFinances = ({ COLORS, cashboxSummary }) => {
   return (
     <Grid container spacing={3} sx={{ mb: 4 }}>
       {/* Total Ingresos Hoy */}
-      <Grid size={{ xs: 12, sm: 6, md: 6, lg: 3, xl: 3 }}>
+      <Grid size={{ xs: 12, sm: 6, md: 6, lg: 2.4, xl: 2.4 }}>
         <Card
           sx={{
             borderRadius: "20px",
@@ -63,7 +63,7 @@ const IndicatorsFinances = ({ COLORS, cashboxSummary }) => {
       </Grid>
 
       {/* Total Efectivo */}
-      <Grid size={{ xs: 12, sm: 6, md: 6, lg: 3, xl: 3 }}>
+      <Grid size={{ xs: 12, sm: 6, md: 6, lg: 2.4, xl: 2.4 }}>
         <Card
           sx={{
             borderRadius: "20px",
@@ -108,7 +108,7 @@ const IndicatorsFinances = ({ COLORS, cashboxSummary }) => {
       </Grid>
 
       {/* Total Terminal */}
-      <Grid size={{ xs: 12, sm: 6, md: 6, lg: 3, xl: 3 }}>
+      <Grid size={{ xs: 12, sm: 6, md: 6, lg: 2.4, xl: 2.4 }}>
         <Card
           sx={{
             borderRadius: "20px",
@@ -153,7 +153,7 @@ const IndicatorsFinances = ({ COLORS, cashboxSummary }) => {
       </Grid>
 
       {/* Total Transferencias */}
-      <Grid size={{ xs: 12, sm: 6, md: 6, lg: 3, xl: 3 }}>
+      <Grid size={{ xs: 12, sm: 6, md: 6, lg: 2.4, xl: 2.4 }}>
         <Card
           sx={{
             borderRadius: "20px",
@@ -173,13 +173,13 @@ const IndicatorsFinances = ({ COLORS, cashboxSummary }) => {
                   color='textSecondary'
                   sx={{ fontWeight: 700, textTransform: "uppercase" }}
                 >
-                  Pagos Directos(stripe)
+                  Pagos (stripe)
                 </Typography>
                 <Typography
                   variant='h5'
                   sx={{ fontWeight: 900, color: COLORS.warning, mt: 0.5 }}
                 >
-                  {FormatCurrency(cashboxSummary.transferToday)}
+                  {FormatCurrency(cashboxSummary.stripe)}
                 </Typography>
               </Box>
               <Avatar
@@ -191,6 +191,50 @@ const IndicatorsFinances = ({ COLORS, cashboxSummary }) => {
                 }}
               >
                 <TransferIcon />
+              </Avatar>
+            </Stack>
+          </CardContent>
+        </Card>
+      </Grid>
+      {/**Totales en transferencia bancaria */}
+      <Grid size={{ xs: 12, sm: 6, md: 6, lg: 2.4, xl: 2.4 }}>
+        <Card
+          sx={{
+            borderRadius: "20px",
+            border: "1px solid rgba(76, 175, 80, 0.15)",
+            background: "linear-gradient(135deg, #fccce7 0%, #FFFFFF 100%)",
+            boxShadow: "0px 10px 30px rgba(76, 175, 80, 0.02)",
+          }}
+        >
+          <CardContent>
+            <Stack
+              direction='row'
+              sx={{ alignItems: "center", justifyContent: "space-between" }}
+            >
+              <Box>
+                <Typography
+                  variant='caption'
+                  color='textSecondary'
+                  sx={{ fontWeight: 700, textTransform: "uppercase" }}
+                >
+                  Trans. Bancaria
+                </Typography>
+                <Typography
+                  variant='h5'
+                  sx={{ fontWeight: 900, color: "#E8408F", mt: 0.5 }}
+                >
+                  {FormatCurrency(cashboxSummary.bank_transfer)}
+                </Typography>
+              </Box>
+              <Avatar
+                sx={{
+                  bgcolor: "rgba(175, 76, 144, 0.1)",
+                  color: "#E8408F",
+                  width: 46,
+                  height: 46,
+                }}
+              >
+                <CashIcon />
               </Avatar>
             </Stack>
           </CardContent>

@@ -13,7 +13,8 @@ export const FinanceProvider = ({ children }) => {
     totalToday: 0,
     cashToday: 0,
     cardToday: 0,
-    transferToday: 0,
+    stripe: 0,
+    bank_transfer: 0,
     transactionCount: 0,
   });
 
@@ -95,7 +96,8 @@ export const FinanceProvider = ({ children }) => {
       let totalToday = 0;
       let cashToday = 0;
       let cardToday = 0;
-      let transferToday = 0;
+      let stripe = 0;
+      let bank_transfer = 0;
 
       const ingresosProcesadosHoy = pagosHoyRaw.map((p) => {
         const monto = Number(p.amount || 0);
@@ -108,7 +110,8 @@ export const FinanceProvider = ({ children }) => {
           p.payment_method === "card"
         )
           cardToday += monto;
-        else if (p.payment_method === "stripe_online") transferToday += monto;
+        else if (p.payment_method === "stripe_online") stripe += monto;
+        else if (p.payment_method === "bank_transfer") bank_transfer += monto;
 
         return {
           id: p.id,
@@ -126,7 +129,8 @@ export const FinanceProvider = ({ children }) => {
         totalToday,
         cashToday,
         cardToday,
-        transferToday,
+        stripe,
+        bank_transfer,
         transactionCount: ingresosProcesadosHoy.length,
       });
       setTransactionsToday(ingresosProcesadosHoy);

@@ -20,8 +20,14 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
-
-const SalonCard = ({ salon, index, handleAbrirEditor, handleDeleteSalon }) => {
+import AssignmentIcon from "@mui/icons-material/Assignment";
+const SalonCard = ({
+  salon,
+  index,
+  handleAbrirEditor,
+  handleDeleteSalon,
+  handleOpenCursosAsignados,
+}) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const openMenu = Boolean(anchorEl);
 
@@ -163,15 +169,17 @@ const SalonCard = ({ salon, index, handleAbrirEditor, handleDeleteSalon }) => {
               onClose={handleCloseMenu}
               transformOrigin={{ horizontal: "right", vertical: "top" }}
               anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-              PaperProps={{
-                elevation: 0,
-                sx: {
-                  borderRadius: "16px",
-                  border: "1px solid rgba(0, 0, 0, 0.06)",
-                  boxShadow: "0px 12px 32px rgba(42, 36, 38, 0.08)",
-                  minWidth: 140,
-                  mt: 0.5,
-                  p: 0.5,
+              slotProps={{
+                paper: {
+                  elevation: 0,
+                  sx: {
+                    borderRadius: "16px",
+                    border: "1px solid rgba(0, 0, 0, 0.06)",
+                    boxShadow: "0px 12px 32px rgba(42, 36, 38, 0.08)",
+                    minWidth: 140,
+                    mt: 0.5,
+                    p: 0.5,
+                  },
                 },
               }}
             >
@@ -194,7 +202,25 @@ const SalonCard = ({ salon, index, handleAbrirEditor, handleDeleteSalon }) => {
                 </ListItemIcon>
                 <ListItemText primary='Editar' />
               </MenuItem>
-
+              <MenuItem
+                onClick={() => {
+                  handleCloseMenu();
+                  handleOpenCursosAsignados(salon.id);
+                }}
+                sx={{
+                  py: 1.2,
+                  borderRadius: "10px",
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: "0.9rem",
+                }}
+              >
+                <ListItemIcon
+                  sx={{ color: "success.main", minWidth: "28px !important" }}
+                >
+                  <AssignmentIcon sx={{ fontSize: 18 }} />
+                </ListItemIcon>
+                <ListItemText primary='Cursos Asignados' />
+              </MenuItem>
               <MenuItem
                 onClick={() => {
                   handleCloseMenu();

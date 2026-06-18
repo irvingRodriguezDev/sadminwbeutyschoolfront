@@ -7,16 +7,21 @@ import { alerts } from "../../../utils/alerts";
 import { supabase } from "../../../config/supabaseClient";
 import EmptySalones from "./EmptySalones";
 import SalonCard from "../../../components/common/SalonCard";
+import CursosEnSalon from "./CursosEnSalon";
 
 const GestionSalones = () => {
   const { salones, loadingSchool, refreshSchoolData } = useSchool();
   const [modalOpen, setModalOpen] = useState(false);
   const [openEditar, setOpenEditar] = useState(false);
   const [editarSalon, setEditarSalon] = useState(null);
+  const [openCursosAsignados, setOpenCursosAsignados] = useState(false);
+  const [idSalon, setIdSalon] = useState(null);
+
   const handleAbrirEditor = (salon) => {
     setOpenEditar(true);
     setEditarSalon(salon);
   };
+
   const handleDeleteSalon = async (salonId) => {
     const result = await alerts.confirm(
       "¿Eliminar Salón?",
@@ -39,6 +44,12 @@ const GestionSalones = () => {
       }
     }
   };
+
+  const handleOpenCursosAsignados = (idSalon) => {
+    setOpenCursosAsignados(true);
+    setIdSalon(idSalon);
+  };
+
   return (
     <>
       <Grid container spacing={2}>
@@ -65,6 +76,7 @@ const GestionSalones = () => {
                 salon={salon}
                 handleAbrirEditor={handleAbrirEditor}
                 handleDeleteSalon={handleDeleteSalon}
+                handleOpenCursosAsignados={handleOpenCursosAsignados}
                 index={salon.id}
                 key={salon.id}
               />
@@ -80,6 +92,16 @@ const GestionSalones = () => {
             open={openEditar}
             onClose={() => setEditarSalon(false)}
             salon={editarSalon}
+          />
+        )}
+        {openCursosAsignados && idSalon && (
+          <CursosEnSalon
+            open={openCursosAsignados}
+            handleClose={() => {
+              setOpenCursosAsignados(false);
+              setIdSalon(null);
+            }}
+            idSalon={idSalon}
           />
         )}
       </Grid>
