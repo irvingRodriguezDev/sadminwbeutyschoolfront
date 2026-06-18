@@ -82,7 +82,7 @@ const ScannerView = () => {
           student_id,
           course_id,
           students ( name ),
-          courses ( title, tipo )
+          cursos ( titulo, tipo_curso )
         `,
         )
         .eq("qr_code_token", code)
@@ -111,7 +111,7 @@ const ScannerView = () => {
       const fechaHoy = new Date().toISOString().split("T")[0];
 
       // 2. Ejecutar validación dependiendo de si es Curso o Taller
-      if (enrollment.courses.tipo === "taller") {
+      if (enrollment.cursos.tipo_curso === "Taller") {
         // Si es taller, no importa la fecha, solo puede existir UNA asistencia en la vida
         const { data: extAttendance } = await supabase
           .from("attendance")
@@ -157,7 +157,7 @@ const ScannerView = () => {
       await MySwal.fire({
         icon: "success",
         title: "ACCESO CONCEDIDO",
-        html: `<strong>Alumna:</strong> ${enrollment.students.name}<br/><strong>Evento:</strong> ${enrollment.courses.title}`,
+        html: `<strong>Alumna:</strong> ${enrollment.students.name}<br/><strong>Evento:</strong> ${enrollment.cursos.titulo}`,
         showConfirmButton: false,
         timer: 2000,
       });
@@ -169,7 +169,7 @@ const ScannerView = () => {
         title: "ENTRADA RECHAZADA",
         text: error.message || "Error al conectar con el servidor",
         showConfirmButton: false,
-        timer: 2500,
+        // timer: 2500,
       });
     } finally {
       setLoading(false);
