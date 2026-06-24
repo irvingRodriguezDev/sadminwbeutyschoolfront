@@ -31,31 +31,63 @@ import { useAuth } from "../context/AuthContext";
 import StyledNavItem from "../components/common/SidebarItem";
 import LogoWapizima from "../assets/logo_wapizima.webp";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
-// El ancho cuando está abierto el menú lateral
+import DrawerContent from "./DrawerContent";
+
 const drawerWidth = 280;
 
 const DashboardLayout = () => {
-  const { profile } = useAuth();
+  const { profile } = useAuth(); // Asumimos que profile trae { rol, escuela_configurada, ... }
   const location = useLocation();
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  // 1. Estado inicial preventivo
   const [needsOnBoarding, setNeedsOnBoarding] = useState(() => {
     const savedValue = localStorage.getItem("needsOnBoarding");
     if (savedValue === null) return true;
     return savedValue === "true";
   });
 
-  // Estado que controla la apertura del panel de navegación
-  const [open, setOpen] = useState(false); // Cambiado a true por defecto para una carga más fluida en desktop
+  // Estado del menú lateral
+  const [open, setOpen] = useState(false);
+
+  // 🛡️ 2. EFECTO CORRECTOR DE ROLES Y CONFIGURACIÓN REAL
+  useEffect(() => {
+    if (profile) {
+      // Si es Superadmin, jamás necesita onboarding de tienda. Activamos el menú.
+      if (profile.rol === "superadmin") {
+        setNeedsOnBoarding(false);
+        setOpen(false);
+        localStorage.setItem("needsOnBoarding", "false");
+      }
+      // Si es administrador de academia y la tienda ya está configurada en su perfil/BD
+      else if (
+        profile.rol === "school_admin" &&
+        profile.escuela?.stripe_onboarding_complete === true
+      ) {
+        setNeedsOnBoarding(false);
+        setOpen(false);
+        localStorage.setItem("needsOnBoarding", "false");
+      }
+      // Si entra y explícitamente el localStorage dice que no lo necesita
+      else if (localStorage.getItem("needsOnBoarding") === "false") {
+        setNeedsOnBoarding(false);
+        setOpen(false);
+      }
+    }
+  }, [profile]);
 
   const handleDrawerToggle = () => {
     setOpen(!open);
   };
+
   const handleCompleteOnboarding = () => {
-    setNeedsOnBoarding(false); // Apaga el bloqueo del Onboarding
-    setOpen(true); // 🚀 Ejecuta la animación de apertura del menú AQUÍ Y SÓLO AQUÍ
+    localStorage.setItem("needsOnBoarding", "false");
+    setNeedsOnBoarding(false);
+    setOpen(true);
   };
+
   const menuItems = [
     {
       label: "Dashboard",
@@ -113,81 +145,13 @@ const DashboardLayout = () => {
 
   const handleLogout = async () => {
     try {
+      localStorage.removeItem("needsOnBoarding"); // Limpieza segura al salir
       await supabase.auth.signOut();
       navigate("/login", { replace: true });
     } catch (error) {
       console.error("Error:", error.message);
     }
   };
-
-  const drawerContent = (
-    <Box
-      sx={{ p: 2, height: "100%", display: "flex", flexDirection: "column" }}
-    >
-      <Toolbar
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          px: [1],
-        }}
-      >
-        <Typography
-          variant='h6'
-          fontWeight='bold'
-          sx={{ color: "#f06292", ml: 1, width: "100%" }}
-        >
-          <img
-            src={LogoWapizima}
-            width={"100%"}
-            height={50}
-            style={{ objectFit: "contain" }}
-            alt='Wapizima Logo'
-          />
-        </Typography>
-        <IconButton
-          onClick={handleDrawerToggle}
-          sx={{ display: { xs: "none", sm: "flex" } }}
-        >
-          <ChevronLeftIcon />
-        </IconButton>
-      </Toolbar>
-
-      <Divider sx={{ my: 2, opacity: 0.5 }} />
-
-      <List sx={{ flexGrow: 1 }}>
-        {filteredMenuItems.map((item) => (
-          <StyledNavItem
-            key={item.label}
-            active={location.pathname === item.path}
-            onClick={() => {
-              navigate(item.path);
-              if (isMobile) setOpen(false);
-            }}
-          >
-            <ListItemIcon
-              sx={{
-                color: location.pathname === item.path ? "#f06292" : "inherit",
-              }}
-            >
-              {item.icon}
-            </ListItemIcon>
-            <ListItemText primary={item.label} />
-          </StyledNavItem>
-        ))}
-      </List>
-
-      <Box sx={{ pb: 2 }}>
-        <Divider sx={{ mb: 2, opacity: 0.5 }} />
-        <StyledNavItem onClick={handleLogout}>
-          <ListItemIcon>
-            <Logout />
-          </ListItemIcon>
-          <ListItemText primary='Cerrar Sesión' />
-        </StyledNavItem>
-      </Box>
-    </Box>
-  );
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#fdf7f9" }}>
@@ -276,10 +240,17 @@ const DashboardLayout = () => {
             "& .MuiDrawer-paper": { width: drawerWidth, border: "none" },
           }}
         >
-          {drawerContent}
+          <DrawerContent
+            LogoWapizima={LogoWapizima}
+            handleDrawerToggle={handleDrawerToggle}
+            filteredMenuItems={filteredMenuItems}
+            Logout={Logout}
+            handleLogout={handleLogout}
+            isMobile={isMobile}
+          />
         </Drawer>
 
-        {/* Desktop Colapsable */}
+        {/* Desktoppersistent */}
         <Drawer
           variant='persistent'
           open={open && !isMobile}
@@ -295,11 +266,17 @@ const DashboardLayout = () => {
             },
           }}
         >
-          {drawerContent}
+          <DrawerContent
+            LogoWapizima={LogoWapizima}
+            handleDrawerToggle={handleDrawerToggle}
+            filteredMenuItems={filteredMenuItems}
+            Logout={Logout}
+            handleLogout={handleLogout}
+            isMobile={isMobile}
+          />
         </Drawer>
       </Box>
 
-      {/* 🌟 CONTENIDO PRINCIPAL: Ajustado con animaciones fluidas alineadas al AppBar */}
       <Box
         component='main'
         sx={{

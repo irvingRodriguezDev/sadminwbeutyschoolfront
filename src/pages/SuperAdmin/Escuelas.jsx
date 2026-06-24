@@ -59,16 +59,8 @@ const ListaEscuelas = () => {
           Administración de academias globales de Wapizima Beauty School
         </Typography>
       </Grid>
-      <Grid size={{ x: 12, md: 10 }}>
-        <BuscadorGlobal
-          search={search}
-          setSearch={setSearch}
-          placeholder='Buscar academia'
-          maxWidth='100%'
-        />
-      </Grid>
       <Grid
-        size={{ xs: 12, md: 2 }}
+        size={{ xs: 12, md: 12 }}
         sx={{ display: "flex", justifyContent: "flex-end" }}
       >
         <Link to='/registrar-escuela' style={{ textDecoration: "none" }}>
@@ -92,6 +84,14 @@ const ListaEscuelas = () => {
             Nueva Escuela
           </Button>
         </Link>
+      </Grid>
+      <Grid size={{ xs: 12, md: 12 }}>
+        <BuscadorGlobal
+          search={search}
+          setSearch={setSearch}
+          placeholder='Buscar academia'
+          maxWidth='100%'
+        />
       </Grid>
 
       {/* REJILLA DE ESCUELAS */}
