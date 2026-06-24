@@ -16,6 +16,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { alerts } from "../../utils/alerts";
 import { Turnstile } from "@marsidev/react-turnstile";
 const Login = () => {
+  const cloudflareKey = import.meta.env.VITE_CLOUDFLARE_KEY;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -171,7 +172,7 @@ const Login = () => {
               >
                 <Turnstile
                   ref={turnstileRef}
-                  siteKey='0x4AAAAAADqbuWvHV6QRMurs'
+                  siteKey={cloudflareKey}
                   onSuccess={(token) => setToken(token)}
                   onExpire={() => setToken(null)}
                   onError={() => {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { supabase } from "../../config/supabaseClient";
 import {
   Box,
@@ -14,6 +14,7 @@ import {
 import { ArrowBack, Email, Send, MarkEmailRead } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { Turnstile } from "@marsidev/react-turnstile";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -21,18 +22,28 @@ const ForgotPassword = () => {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-
+  const [token, setToken] = useState(null);
+  const turnstileRef = useRef(null);
+  const cloudflareKey = import.meta.env.VITE_CLOUDFLARE_KEY;
   const handleResetRequest = async (e) => {
     e.preventDefault();
+
+    if (!token) {
+      alerts.error(
+        "Por favor, espera a que se complete la verificación de seguridad.",
+      );
+      return;
+    }
     setLoading(true);
     setError(null);
-
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       // Importante: Redirige a la misma página de 'complete-setup' que ya tenemos
       redirectTo: "https://wapizimabeautyschool.com/completed-setup",
     });
 
     if (error) {
+      turnstileRef.current?.reset();
+      setToken(null);
       setError(error.message);
       setLoading(false);
     } else {
@@ -114,7 +125,44 @@ const ForgotPassword = () => {
                       },
                     }}
                   />
-
+                  <Box
+                    sx={{
+                      my: 3,
+                      display: "flex",
+                      justifyContent: "center",
+                      width: "100%",
+                      // ✨ Filtramos el contenedor para suavizarlo e integrarlo a la paleta
+                      "& div": {
+                        borderRadius: "20px !important", // Forzamos esquinas ultra redondeadas premium
+                        overflow: "hidden",
+                        boxShadow: "0px 8px 24px rgba(240, 98, 146, 0.15)", // Resplandor rosa Wapizima
+                        border: "1px solid rgba(240, 98, 146, 0.2)", // Borde rosa ultra fino
+                        bgcolor: "#F16B99",
+                      },
+                      // Opcional: Si quieres suavizar un poco la intensidad de sus colores nativos
+                      "& iframe": {
+                        filter:
+                          "hue-rotate(100deg) saturate(1.5) brightness(0.5)",
+                      },
+                    }}
+                  >
+                    <Turnstile
+                      ref={turnstileRef}
+                      siteKey={cloudflareKey}
+                      onSuccess={(token) => setToken(token)}
+                      onExpire={() => setToken(null)}
+                      onError={() => {
+                        alerts.error(
+                          "Hubo un problema con la verificación de seguridad. Reintentando...",
+                        );
+                        setToken(null);
+                      }}
+                      options={{
+                        theme: "light",
+                        size: "normal",
+                      }}
+                    />
+                  </Box>
                   <Button
                     fullWidth
                     size='large'
