@@ -45,9 +45,9 @@ serve(async (req) => {
     // El Trigger de Postgres los leerá automáticamente al insertar en 'profiles'
     const { data: inviteData, error: errorInvite } =
       await supabaseAdmin.auth.admin.inviteUserByEmail(emailAdmin, {
-        redirectTo: 'http://localhost:5173/completed-setup',
+        redirectTo: 'https://wapizimabeautyschool.com/completed-setup',
         data: {
-          name: `Administrador ${name}`,
+          name: `Admin ${name}`,
           rol: "school_admin",
           school_id: escuela.id, 
         },

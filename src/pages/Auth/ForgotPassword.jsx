@@ -29,7 +29,7 @@ const ForgotPassword = () => {
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       // Importante: Redirige a la misma página de 'complete-setup' que ya tenemos
-      redirectTo: "http://localhost:5173/completed-setup",
+      redirectTo: "https://wapizimabeautyschool.com/completed-setup",
     });
 
     if (error) {
