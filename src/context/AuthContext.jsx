@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
         // Importante: Verifica que tu tabla se llame 'perfiles' o 'profiles'
         const { data, error } = await supabase
           .from("profiles")
-          .select(`*, escuela:schools(name)`)
+          .select(`*, escuela:schools(name, stripe_onboarding_complete)`)
           .eq("id", sessionUser.id)
           .single();
 

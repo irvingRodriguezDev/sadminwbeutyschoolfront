@@ -10,14 +10,16 @@ import {
   CircularProgress,
   Divider,
 } from "@mui/material";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
-import CloudUploadRoundedIcon from "@mui/icons-material/CloudUploadRounded";
+
 import { useOutletContext } from "react-router-dom"; // 🌟 IMPORTANTE: Para comunicar con el layout padre
 import { alerts } from "../../utils/alerts";
 import { supabase } from "../../config/supabaseClient";
 import LocationPicker from "./LocationPiker";
-import BuildWebsiteSvg from "../../assets/build_website.svg";
+import StepperOne from "./Stepper/StepperOne";
+import StepperTwo from "./Stepper/StepperTwo";
+import StepperThree from "./Stepper/StepperThree";
+import LoadingInitial from "./Stepper/LoadingInitial";
+import ButtonActions from "./Stepper/ButtonActions";
 const steps = [
   "Identidad de la Academia",
   "Configuración de Pagos",
@@ -229,56 +231,7 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
   };
   // 🌟 Si está preparando la experiencia, mostramos esta vista a pantalla completa
   if (isPreparando) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "60vh",
-          textAlign: "center",
-          p: 4,
-          animation: "fadeIn 0.5s ease-out",
-          "@keyframes fadeIn": {
-            from: { opacity: 0, transform: "translateY(10px)" },
-            to: { opacity: 1, transform: "translateY(0)" },
-          },
-        }}
-      >
-        {/* Spinner concéntrico doble estilo Premium SaaS */}
-        <Box
-          sx={{
-            position: "relative",
-            display: "inline-flex",
-            mb: 4,
-            width: "100%",
-            maxWidth: 280,
-          }}
-        >
-          <img
-            src={BuildWebsiteSvg}
-            alt='Preparando sitio'
-            style={{ width: "100%", height: "auto" }}
-          />
-        </Box>
-
-        <Typography
-          variant='h5'
-          sx={{ fontWeight: 800, color: "#1a1a1a", mb: 1 }}
-        >
-          Estamos preparando tu experiencia
-        </Typography>
-
-        <Typography
-          variant='body2'
-          sx={{ color: "text.secondary", maxWidth: 360, lineHeight: 1.6 }}
-        >
-          Configurando salones virtuales, pasarelas de pago y tu nueva identidad
-          de marca. Tardará solo unos segundos...
-        </Typography>
-      </Box>
-    );
+    return <LoadingInitial />;
   }
 
   // Abajo continúa tu "return ( <Box sx={{ width: "100%", mt: 2 }}> ..." original intacto
@@ -309,255 +262,37 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
       >
         {/* PASO 0: IDENTIDAD */}
         {activeStep === 0 && (
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 3,
-              alignItems: "center",
-              textAlign: "center",
-            }}
-          >
-            <Box>
-              <Typography
-                variant='h6'
-                sx={{ fontWeight: 800, color: "#1a1a1a" }}
-              >
-                Identidad Visual
-              </Typography>
-              <Typography variant='body2' color='text.secondary'>
-                Sube el logo oficial de tu academia para la emisión de
-                certificados.
-              </Typography>
-            </Box>
-
-            <Button
-              variant='outlined'
-              component='label'
-              disabled={isSubiendoLogo}
-              startIcon={
-                isSubiendoLogo ? (
-                  <CircularProgress size={16} color='inherit' />
-                ) : (
-                  <CloudUploadRoundedIcon />
-                )
-              }
-              sx={{
-                color: "#d81b60",
-                borderColor: "rgba(240, 98, 146, 0.5)",
-                textTransform: "none",
-                fontWeight: 700,
-                borderRadius: "10px",
-                px: 3,
-              }}
-            >
-              {isSubiendoLogo
-                ? "Subiendo..."
-                : logoUrl
-                  ? "Cambiar Logo"
-                  : "Seleccionar Imagen"}
-              <input
-                type='file'
-                hidden
-                accept='image/*'
-                onChange={handleLogoChange}
-              />
-            </Button>
-
-            {logoUrl && (
-              <Typography
-                variant='caption'
-                sx={{
-                  color: "#2e7d32",
-                  fontWeight: 700,
-                  bgcolor: "rgba(46,125,50,0.06)",
-                  px: 2,
-                  py: 0.5,
-                  borderRadius: "20px",
-                }}
-              >
-                ✓ Logo cargado en el servidor con éxito
-              </Typography>
-            )}
-
-            <Divider
-              sx={{ width: "100%", borderColor: "rgba(0,0,0,0.05)", my: 1 }}
-            />
-
-            <Box
-              sx={{
-                width: "100%",
-                display: "flex",
-                flexDirection: "column",
-                gap: 1,
-              }}
-            >
-              <Typography
-                variant='h6'
-                sx={{ fontWeight: 800, color: "#1a1a1a" }}
-              >
-                Dirección Geográfica
-              </Typography>
-              {/* Le pasamos el valor inicial recuperado de memoria si existe */}
-              <LocationPicker
-                initialValue={locationData}
-                onLocationSelect={(data) => setLocationData(data)}
-              />
-              {locationData.address && (
-                <Typography
-                  variant='body2'
-                  sx={{ color: "#d81b60", fontWeight: 600, mt: 1 }}
-                >
-                  📍 {locationData.address}
-                </Typography>
-              )}
-            </Box>
-          </Box>
+          <StepperOne
+            logoUrl={logoUrl}
+            handleLogoChange={handleLogoChange}
+            locationData={locationData}
+            setLocationData={setLocationData}
+            isSubiendoLogo={isSubiendoLogo}
+          />
         )}
 
         {/* PASO 1: STRIPE */}
         {activeStep === 1 && (
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              textAlign: "center",
-              gap: 2,
-              py: 2,
-            }}
-          >
-            {!stripeConnected ? (
-              <>
-                <AccountBalanceIcon sx={{ fontSize: 50, color: "#f06292" }} />
-                <Typography
-                  variant='h6'
-                  sx={{ fontWeight: 800, color: "#1a1a1a" }}
-                >
-                  Pasarela de Pagos Stripe
-                </Typography>
-                <Typography
-                  variant='body2'
-                  color='text.secondary'
-                  sx={{ maxWidth: 450 }}
-                >
-                  Vincula tu cuenta para automatizar las inscripciones y recibir
-                  tus liquidaciones directo a tu banco.
-                </Typography>
-                <Button
-                  variant='contained'
-                  onClick={handleStripeConnect}
-                  disabled={isConnecting}
-                  disableElevation
-                  sx={{
-                    bgcolor: "#d81b60",
-                    borderRadius: "10px",
-                    px: 4,
-                    fontWeight: 700,
-                    textTransform: "none",
-                    "&:hover": { bgcolor: "#1a1a1a" },
-                  }}
-                >
-                  {isConnecting ? (
-                    <CircularProgress size={22} color='inherit' />
-                  ) : (
-                    "Conectar cuenta bancaria"
-                  )}
-                </Button>
-              </>
-            ) : (
-              <>
-                <CheckCircleIcon sx={{ fontSize: 55, color: "#2e7d32" }} />
-                <Typography
-                  variant='h6'
-                  sx={{ fontWeight: 800, color: "#2e7d32" }}
-                >
-                  ¡Cuenta de Pagos Lista!
-                </Typography>
-                <Typography variant='body2' color='text.secondary'>
-                  Stripe Express se ha conectado de forma correcta a tu
-                  academia.
-                </Typography>
-              </>
-            )}
-          </Box>
+          <StepperTwo
+            stripeConnected={stripeConnected}
+            isConnecting={isConnecting}
+            handleStripeConnect={handleStripeConnect}
+          />
         )}
 
         {/* PASO 2: CONFIRMACIÓN */}
-        {activeStep === 2 && (
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              textAlign: "center",
-              gap: 1,
-              py: 3,
-            }}
-          >
-            <Typography variant='h6' sx={{ fontWeight: 800, color: "#1a1a1a" }}>
-              ¡Todo Listo para el Lanzamiento!
-            </Typography>
-            <Typography
-              variant='body2'
-              color='text.secondary'
-              sx={{ maxWidth: 400 }}
-            >
-              La identidad corporativa, coordenadas de mapas y cuenta bancaria
-              se han unificado correctamente.
-            </Typography>
-          </Box>
-        )}
+        {activeStep === 2 && <StepperThree />}
 
         {/* BOTONES DE CONTROL */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyMod: "flex-end",
-            gap: 1,
-            pt: 2,
-            borderTop: "1px solid rgba(0,0,0,0.05)",
-            mt: "auto",
-          }}
-        >
-          <Button
-            disabled={activeStep === 0 || isSaving}
-            onClick={() => setActiveStep((prev) => prev - 1)}
-            sx={{
-              fontWeight: 700,
-              textTransform: "none",
-              color: "text.secondary",
-            }}
-          >
-            Atrás
-          </Button>
-          <Button
-            variant='contained'
-            onClick={handleNext}
-            disabled={
-              isSaving ||
-              isSubiendoLogo ||
-              (activeStep === 1 && !stripeConnected)
-            }
-            disableElevation
-            sx={{
-              bgcolor: "#d81b60",
-              fontWeight: 700,
-              textTransform: "none",
-              borderRadius: "10px",
-              px: 4,
-              "&:hover": { bgcolor: "#1a1a1a" },
-            }}
-          >
-            {isSaving ? (
-              <CircularProgress size={22} color='inherit' />
-            ) : activeStep === steps.length - 1 ? (
-              "Concluir Registro"
-            ) : (
-              "Continuar"
-            )}
-          </Button>
-        </Box>
+        <ButtonActions
+          steps={steps}
+          isSubiendoLogo={isSubiendoLogo}
+          activeStep={activeStep}
+          isSaving={isSaving}
+          stripeConnected={stripeConnected}
+          handleNext={handleNext}
+          setActiveStep={setActiveStep}
+        />
       </Paper>
     </Box>
   );

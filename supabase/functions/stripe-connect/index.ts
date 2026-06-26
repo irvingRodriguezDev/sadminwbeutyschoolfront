@@ -32,8 +32,8 @@ serve(async (req) => {
     // 2. Generar el link de Onboarding
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: `https://wapizimabeautyschool.com/dashboard?error=true`,
-      return_url: `https://wapizimabeautyschool.com/dashboard?success=true&account_id=${account.id}`,
+      refresh_url: `http://localhost:5173/dashboard?error=true`,
+      return_url: `http://localhost:5173/dashboard?success=true&account_id=${account.id}`,
       type: 'account_onboarding',
     });
 

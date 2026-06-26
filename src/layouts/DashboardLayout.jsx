@@ -43,105 +43,53 @@ const DashboardLayout = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   // 1. Estado inicial preventivo
-  const [needsOnBoarding, setNeedsOnBoarding] = useState(() => {
-    const savedValue = localStorage.getItem("needsOnBoarding");
-    if (savedValue === null) return true;
-    return savedValue === "true";
-  });
+  const [needsOnBoarding, setNeedsOnBoarding] = useState(false);
 
   // Estado del menú lateral
   const [open, setOpen] = useState(false);
-
+  // 🎯 Bandera para bloquear ejecuciones repetidas y romper el ciclo
+  const [isInitialized, setIsInitialized] = useState(false);
   // 🛡️ 2. EFECTO CORRECTOR DE ROLES Y CONFIGURACIÓN REAL
   useEffect(() => {
+    // Si ya se inicializó una vez, no volvemos a evaluar para evitar el bucle
+    if (isInitialized) return;
+
     if (profile) {
-      // Si es Superadmin, jamás necesita onboarding de tienda. Activamos el menú.
+      // Si es Superadmin, jamás necesita onboarding.
       if (profile.rol === "superadmin") {
         setNeedsOnBoarding(false);
-        setOpen(false);
-        localStorage.setItem("needsOnBoarding", "false");
+        setOpen(false); // Respeta tu preferencia de mantenerlo cerrado
       }
-      // Si es administrador de academia y la tienda ya está configurada en su perfil/BD
+      // Si es administrador de academia y la tienda ya está configurada
       else if (
         profile.rol === "school_admin" &&
         profile.escuela?.stripe_onboarding_complete === true
       ) {
         setNeedsOnBoarding(false);
-        setOpen(false);
-        localStorage.setItem("needsOnBoarding", "false");
+        setOpen(false); // Respeta tu preferencia de mantenerlo cerrado
       }
-      // Si entra y explícitamente el localStorage dice que no lo necesita
-      else if (localStorage.getItem("needsOnBoarding") === "false") {
-        setNeedsOnBoarding(false);
-        setOpen(false);
+      // Si es administrador pero aún le falta configurar la tienda
+      else if (
+        profile.rol === "school_admin" &&
+        profile.escuela?.stripe_onboarding_complete === false
+      ) {
+        setNeedsOnBoarding(true);
+        setOpen(false); // Forzamos ocultarlo por el onboarding
       }
+
+      // 🌟 Marcar como inicializado: esto congela el efecto y rompe cualquier bucle
+      setIsInitialized(true);
     }
-  }, [profile]);
+  }, [profile, isInitialized]); // Escucha a profile, pero se bloquea inmediatamente con isInitialized
 
   const handleDrawerToggle = () => {
     setOpen(!open);
   };
 
   const handleCompleteOnboarding = () => {
-    localStorage.setItem("needsOnBoarding", "false");
     setNeedsOnBoarding(false);
     setOpen(true);
   };
-
-  const menuItems = [
-    {
-      label: "Dashboard",
-      icon: <Dashboard />,
-      path: "/dashboard",
-      roles: ["superadmin"],
-    },
-    {
-      label: "Escuelas",
-      icon: <School />,
-      path: "/escuelas",
-      roles: ["superadmin"],
-    },
-    {
-      label: "Mi Academia",
-      icon: <Dashboard />,
-      path: "/dashboard",
-      roles: ["school_admin"],
-    },
-    {
-      label: "Salones",
-      icon: <MeetingRoomOutlined />,
-      path: "/salones",
-      roles: ["school_admin"],
-    },
-    {
-      label: "Cursos y Talleres",
-      icon: <BookOutlined />,
-      path: "/cursos",
-      roles: ["school_admin"],
-    },
-    {
-      label: "Inscripciones",
-      icon: <GroupAddOutlined />,
-      path: "/inscripciones",
-      roles: ["school_admin"],
-    },
-    {
-      label: "Finanzas",
-      icon: <RequestQuoteIcon />,
-      path: "/finanzas",
-      roles: ["school_admin"],
-    },
-    {
-      label: "Scanner",
-      icon: <QrCodeScannerIcon />,
-      path: "/scanner-asistencia",
-      roles: ["school_admin"],
-    },
-  ];
-
-  const filteredMenuItems = menuItems.filter((item) =>
-    item.roles.includes(profile?.rol),
-  );
 
   const handleLogout = async () => {
     try {
@@ -243,10 +191,10 @@ const DashboardLayout = () => {
           <DrawerContent
             LogoWapizima={LogoWapizima}
             handleDrawerToggle={handleDrawerToggle}
-            filteredMenuItems={filteredMenuItems}
             Logout={Logout}
             handleLogout={handleLogout}
             isMobile={isMobile}
+            profile={profile}
           />
         </Drawer>
 
@@ -269,10 +217,10 @@ const DashboardLayout = () => {
           <DrawerContent
             LogoWapizima={LogoWapizima}
             handleDrawerToggle={handleDrawerToggle}
-            filteredMenuItems={filteredMenuItems}
             Logout={Logout}
             handleLogout={handleLogout}
             isMobile={isMobile}
+            profile={profile}
           />
         </Drawer>
       </Box>

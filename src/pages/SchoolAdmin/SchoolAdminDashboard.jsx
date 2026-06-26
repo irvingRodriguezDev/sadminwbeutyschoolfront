@@ -32,8 +32,8 @@ const SchoolAdminDashboard = () => {
       {/* Saludo Inicial */}
       <Box sx={{ mb: 4 }}>
         <Typography variant='h4' fontWeight='bold' color='#333'>
-          ¡Hola, {profile?.name?.split(" ")[1]} {profile?.name?.split(" ")[2]} !
-          👋🏻
+          ¡Hola, {profile?.name?.split(" ")[1]} {profile?.name?.split(" ")[2]}{" "}
+          {profile?.name?.split(" ")[3]} {profile?.name?.split(" ")[4]} ! 👋🏻
         </Typography>
         <Typography variant='body1' color='textSecondary'>
           Esto es lo que sucede hoy en tu institución.

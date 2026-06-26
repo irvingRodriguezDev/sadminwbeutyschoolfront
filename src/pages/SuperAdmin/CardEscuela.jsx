@@ -130,7 +130,7 @@ const CardEscuela = ({ escuela, index }) => {
                   letterSpacing: "0.5px",
                 }}
               >
-                {escuela.perfil.email}
+                {escuela.perfil?.email}
               </Typography>
             </Box>
           </Box>

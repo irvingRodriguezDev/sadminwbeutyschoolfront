@@ -12,27 +12,30 @@ import { AdminSchoolProvider } from "./context/AdminSchoolContext.jsx";
 import { InscriptionsProvider } from "./context/InscriptionsContext.jsx";
 import { StudentsProvider } from "./context/StudentsContext.jsx";
 import { FinanceProvider } from "./context/FinanzeContext.jsx";
+import { GoogleMapsProvider } from "./context/GoogleMapsProvider.jsx";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <ThemeProvider theme={premiumTheme}>
       <CssBaseline />
-      <AuthProvider>
-        <SuperAdminProvider>
-          <AdminSchoolProvider>
-            <SchoolProvider>
-              <CursoProvider>
-                <StudentsProvider>
-                  <InscriptionsProvider>
-                    <FinanceProvider>
-                      <App />
-                    </FinanceProvider>
-                  </InscriptionsProvider>
-                </StudentsProvider>
-              </CursoProvider>
-            </SchoolProvider>
-          </AdminSchoolProvider>
-        </SuperAdminProvider>
-      </AuthProvider>
+      <GoogleMapsProvider>
+        <AuthProvider>
+          <SuperAdminProvider>
+            <AdminSchoolProvider>
+              <SchoolProvider>
+                <CursoProvider>
+                  <StudentsProvider>
+                    <InscriptionsProvider>
+                      <FinanceProvider>
+                        <App />
+                      </FinanceProvider>
+                    </InscriptionsProvider>
+                  </StudentsProvider>
+                </CursoProvider>
+              </SchoolProvider>
+            </AdminSchoolProvider>
+          </SuperAdminProvider>
+        </AuthProvider>
+      </GoogleMapsProvider>
     </ThemeProvider>
   </StrictMode>,
 );

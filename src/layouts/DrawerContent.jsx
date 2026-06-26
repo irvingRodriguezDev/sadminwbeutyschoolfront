@@ -21,14 +21,71 @@ import {
 } from "@mui/icons-material";
 import StyledNavItem from "../components/common/SidebarItem";
 import { useNavigate } from "react-router-dom";
+import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
+import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 const DrawerContent = ({
   LogoWapizima,
   handleDrawerToggle,
-  filteredMenuItems,
   handleLogout,
   isMobile,
+  profile,
 }) => {
   const navigate = useNavigate();
+  const menuItems = [
+    {
+      label: "Dashboard",
+      icon: <Dashboard />,
+      path: "/dashboard",
+      roles: ["superadmin"],
+    },
+    {
+      label: "Escuelas",
+      icon: <School />,
+      path: "/escuelas",
+      roles: ["superadmin"],
+    },
+    {
+      label: "Mi Academia",
+      icon: <Dashboard />,
+      path: "/dashboard",
+      roles: ["school_admin"],
+    },
+    {
+      label: "Salones",
+      icon: <MeetingRoomOutlined />,
+      path: "/salones",
+      roles: ["school_admin"],
+    },
+    {
+      label: "Cursos y Talleres",
+      icon: <BookOutlined />,
+      path: "/cursos",
+      roles: ["school_admin"],
+    },
+    {
+      label: "Inscripciones",
+      icon: <GroupAddOutlined />,
+      path: "/inscripciones",
+      roles: ["school_admin"],
+    },
+    {
+      label: "Finanzas",
+      icon: <RequestQuoteIcon />,
+      path: "/finanzas",
+      roles: ["school_admin"],
+    },
+    {
+      label: "Scanner",
+      icon: <QrCodeScannerIcon />,
+      path: "/scanner-asistencia",
+      roles: ["school_admin"],
+    },
+  ];
+
+  const filteredMenuItems = menuItems.filter((item) =>
+    item.roles.includes(profile?.rol),
+  );
+
   return (
     <Box
       sx={{ p: 2, height: "100%", display: "flex", flexDirection: "column" }}
@@ -73,6 +130,7 @@ const DrawerContent = ({
               navigate(item.path);
               if (isMobile) setOpen(false);
             }}
+            // disabled={!needsOnBoarding}
           >
             <ListItemIcon
               sx={{

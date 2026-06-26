@@ -51,7 +51,9 @@ const SchoolAdminArea = ({ userProfile }) => {
         <Box sx={{ p: 4, maxWidth: 800, mx: "auto" }}>
           <Typography
             variant='h4'
-            textAlign='center'
+            sx={{
+              textAlign: "center",
+            }}
             gutterBottom
             fontWeight='bold'
           >
@@ -59,12 +61,13 @@ const SchoolAdminArea = ({ userProfile }) => {
           </Typography>
           <Typography
             variant='body1'
-            textAlign='center'
             color='textSecondary'
             mb={4}
+            sx={{
+              textAlign: "center",
+            }}
           >
-            Antes de comenzar a certificar alumnas, configuremos lo básico de tu
-            escuela.
+            Antes de comenzar, configuremos lo básico de tu escuela.
           </Typography>
 
           <OnboardingStepper
