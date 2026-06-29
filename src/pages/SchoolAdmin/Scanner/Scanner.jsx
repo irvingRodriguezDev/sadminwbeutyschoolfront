@@ -72,18 +72,18 @@ const ScannerView = () => {
       // 🚀 LOGICA DE NEGOCIO REAL CON SUPABASE
       // ==========================================
 
-      // 1. Verificar si el QR existe y la inscripción está LIQUIDADA ('completed')
+      // 1. Verificar si el QR existe (Traemos el status para evaluar la condición)
       const { data: enrollment, error: enrollmentErr } = await supabase
         .from("enrollments")
         .select(
           `
-          id,
-          status,
-          student_id,
-          course_id,
-          students ( name ),
-          cursos ( titulo, tipo_curso )
-        `,
+        id,
+        status,
+        student_id,
+        course_id,
+        students ( name ),
+        cursos ( titulo, tipo_curso )
+      `,
         )
         .eq("qr_code_token", code)
         .maybeSingle();
@@ -96,12 +96,25 @@ const ScannerView = () => {
         );
       }
 
-      if (enrollment.status !== "completed") {
+      // 🌟 NUEVA REGLA DE NEGOCIO CONDICIONAL PARA EL STATUS
+      const tipoCurso = enrollment.cursos.tipo_curso;
+      const estado = enrollment.status;
+      let accesoPermitido = false;
+
+      if (tipoCurso === "Curso") {
+        // Para Cursos se permite que estén activos (pagando) o completamente liquidados
+        accesoPermitido = estado === "active" || estado === "completed";
+      } else {
+        // Para Talleres, Masterclasses, etc., estrictamente deben estar liquidados
+        accesoPermitido = estado === "completed";
+      }
+
+      if (!accesoPermitido) {
         setLastStatus("error");
         await MySwal.fire({
           icon: "warning",
           title: "ACCESO DENEGADO",
-          text: `La alumna ${enrollment.students.name} tiene un saldo pendiente. Debe liquidar en mostrador.`,
+          text: `La alumna ${enrollment.students.name} tiene un saldo pendiente para este evento. Debe liquidar en mostrador.`,
           showConfirmButton: true,
           confirmButtonColor: COLORS.brandPink,
         });
@@ -111,7 +124,7 @@ const ScannerView = () => {
       const fechaHoy = new Date().toISOString().split("T")[0];
 
       // 2. Ejecutar validación dependiendo de si es Curso o Taller
-      if (enrollment.cursos.tipo_curso === "Taller") {
+      if (tipoCurso === "Taller") {
         // Si es taller, no importa la fecha, solo puede existir UNA asistencia en la vida
         const { data: extAttendance } = await supabase
           .from("attendance")
@@ -147,7 +160,6 @@ const ScannerView = () => {
         student_id: enrollment.student_id,
         course_id: enrollment.course_id,
         fecha_asistencia: fechaHoy,
-        // scanned_by: (aquí puedes inyectar el id del admin logueado si lo tienes)
       });
 
       if (insertErr) throw insertErr;
@@ -169,7 +181,6 @@ const ScannerView = () => {
         title: "ENTRADA RECHAZADA",
         text: error.message || "Error al conectar con el servidor",
         showConfirmButton: false,
-        // timer: 2500,
       });
     } finally {
       setLoading(false);
