@@ -1,5 +1,5 @@
 import React from "react";
-import BuildWebSiteSvg from "../../../assets/build_website.svg";
+import BuildWebsiteSvg from "../../../assets/build_website.svg";
 import { Box, Typography } from "@mui/material";
 const LoadingInitial = () => {
   return (

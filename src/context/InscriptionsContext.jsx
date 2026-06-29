@@ -167,14 +167,15 @@ export const InscriptionsProvider = ({ children }) => {
     try {
       const costoTotal = Number(courseData.costo);
       const abonoInicial = Number(paymentPayload.amount);
-
+      const tipo_curso = String(courseData.tipo_curso);
       // 1. Calculamos el saldo pendiente inicial
       const saldoRestante = costoTotal - abonoInicial;
       const esLiquidacionTotal = abonoInicial >= costoTotal;
 
       // 2. Si liquida de un solo golpe, generamos el token QR único de taquilla desde el inicio
       const statusPago = esLiquidacionTotal ? "completed" : "active";
-      const tokenQR = esLiquidacionTotal
+      const cumpleCondicionQR = tipo_curso === "Curso" || esLiquidacionTotal;
+      const tokenQR = cumpleCondicionQR
         ? `WBS-${crypto.randomUUID().substring(0, 8).toUpperCase()}`
         : null;
 

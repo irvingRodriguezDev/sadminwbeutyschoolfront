@@ -136,6 +136,7 @@ const NewInscription = () => {
 
     const inscriptionPayload = {
       course_id: formData.course_id,
+      tipo_curso: selectedCourse.tipo_curso,
       status: initialStatus,
       total_amount: totalAmount,
       costo: totalAmount,
@@ -148,7 +149,6 @@ const NewInscription = () => {
       payment_method: formData.payment_method,
       notes: formData.notes,
     };
-
     try {
       const result = await createAdministrativeInscription(
         studentData,
