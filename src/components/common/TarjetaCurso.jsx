@@ -20,6 +20,7 @@ import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import MeetingRoomRoundedIcon from "@mui/icons-material/MeetingRoomRounded";
+import LogoWapizima from "../../assets/logo_wapizima.webp";
 
 const TarjetaCurso = ({ curso, onEdit, onDelete, index }) => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -46,7 +47,7 @@ const TarjetaCurso = ({ curso, onEdit, onDelete, index }) => {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: index * 0.04 }}
-      whileHover={{ y: -4 }}
+      whileHover={{ y: -6 }} // Subimos un pelín más el hover para dar más sensación de flotado
       sx={{ height: "100%" }}
     >
       <Card
@@ -55,31 +56,39 @@ const TarjetaCurso = ({ curso, onEdit, onDelete, index }) => {
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          borderRadius: "14px",
-          border: "1px solid rgba(0, 0, 0, 0.06)",
+          borderRadius: "16px", // Esquinas ligeramente más suaves
+          border: "1px solid rgba(240, 98, 146, 0.15)", // Borde suave tonal desde el inicio
           bgcolor: "#fff",
           position: "relative",
           overflow: "hidden",
-          transition: "all 0.25s ease-in-out",
+          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           "&:hover": {
-            boxShadow: "0 10px 25px rgba(240, 98, 146, 0.05)",
-            borderColor: "rgba(240, 98, 146, 0.3)",
+            boxShadow: "0 12px 30px rgba(240, 98, 146, 0.08)",
+            borderColor: "rgba(240, 98, 146, 0.4)",
           },
         }}
       >
         {/* IMAGEN DE PORTADA / FLYER */}
-        <Box sx={{ position: "relative", height: 180, bgcolor: "#fdf2f5" }}>
+        <Box
+          sx={{
+            position: "relative",
+            height: 190,
+            bgcolor: "#fdf2f5",
+            overflow: "hidden",
+          }}
+        >
           <CardMedia
             component='img'
-            image={
-              curso.flayer_url ||
-              "https://via.placeholder.com/400x500?text=Sin+Flyer"
-            }
+            image={curso.flayer_url || LogoWapizima}
             alt={curso.titulo}
             sx={{
               height: "100%",
               width: "100%",
               objectFit: "cover",
+              transition: "transform 0.5s ease",
+              "PerspectiveCard-root:hover &": {
+                transform: "scale(1.03)", // Pequeño efecto zoom en el flyer al hacer hover a la tarjeta
+              },
             }}
           />
 
@@ -95,8 +104,9 @@ const TarjetaCurso = ({ curso, onEdit, onDelete, index }) => {
               color: "white",
               fontWeight: "800",
               fontSize: "0.65rem",
-              letterSpacing: "0.5px",
-              borderRadius: "6px",
+              letterSpacing: "0.8px",
+              borderRadius: "8px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
             }}
           />
 
@@ -108,6 +118,7 @@ const TarjetaCurso = ({ curso, onEdit, onDelete, index }) => {
               sx={{
                 bgcolor: "rgba(255, 255, 255, 0.9)",
                 color: "#1a1a1a",
+                backdropFilter: "blur(4px)",
                 boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
                 "&:hover": { bgcolor: "#fff", color: "#d81b60" },
               }}
@@ -123,10 +134,10 @@ const TarjetaCurso = ({ curso, onEdit, onDelete, index }) => {
               PaperProps={{
                 elevation: 0,
                 sx: {
-                  borderRadius: "10px",
-                  border: "1px solid rgba(0, 0, 0, 0.08)",
-                  boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
-                  minWidth: 120,
+                  borderRadius: "12px",
+                  border: "1px solid rgba(240, 98, 146, 0.12)",
+                  boxShadow: "0 4px 20px rgba(240, 98, 146, 0.08)",
+                  minWidth: 130,
                   p: 0.5,
                 },
               }}
@@ -136,16 +147,19 @@ const TarjetaCurso = ({ curso, onEdit, onDelete, index }) => {
                   handleCloseMenu();
                   onEdit(curso);
                 }}
-                sx={{ py: 0.8, borderRadius: "6px" }}
+                sx={{ py: 0.8, borderRadius: "8px", gap: 1 }}
               >
                 <ListItemIcon
-                  sx={{ color: "info.main", minWidth: "26px !important" }}
+                  sx={{ color: "info.main", minWidth: "auto !important" }}
                 >
                   <EditRoundedIcon sx={{ fontSize: 16 }} />
                 </ListItemIcon>
                 <ListItemText
                   primary='Editar'
-                  // primaryTypographyProps={{ variant: "body2", fontWeight: 700 }}
+                  primaryTypographyProps={{
+                    fontSize: "0.85rem",
+                    fontWeight: 600,
+                  }}
                 />
               </MenuItem>
 
@@ -154,30 +168,38 @@ const TarjetaCurso = ({ curso, onEdit, onDelete, index }) => {
                   handleCloseMenu();
                   onDelete(curso.id, curso.titulo);
                 }}
-                sx={{ py: 0.8, borderRadius: "6px", color: "error.main" }}
+                sx={{
+                  py: 0.8,
+                  borderRadius: "8px",
+                  color: "error.main",
+                  gap: 1,
+                }}
               >
                 <ListItemIcon
-                  sx={{ color: "error.main", minWidth: "26px !important" }}
+                  sx={{ color: "error.main", minWidth: "auto !important" }}
                 >
                   <DeleteOutlineRoundedIcon sx={{ fontSize: 16 }} />
                 </ListItemIcon>
                 <ListItemText
                   primary='Eliminar'
-                  // primaryTypographyProps={{ variant: "body2", fontWeight: 700 }}
+                  primaryTypographyProps={{
+                    fontSize: "0.85rem",
+                    fontWeight: 600,
+                  }}
                 />
               </MenuItem>
             </Menu>
           </Box>
         </Box>
 
-        {/* CUERPO DE CONTENIDO CON FLEXBOX DIRECTO */}
+        {/* CUERPO DE CONTENIDO */}
         <CardContent
           sx={{
             p: 2.5,
             flexGrow: 1,
             display: "flex",
             flexDirection: "column",
-            gap: 1.5, // El secreto: controla la separación vertical uniforme de todo el bloque sin envolver en Stacks
+            gap: 2,
           }}
         >
           {/* TÍTULO DEL CURSO */}
@@ -186,9 +208,9 @@ const TarjetaCurso = ({ curso, onEdit, onDelete, index }) => {
             sx={{
               fontWeight: 800,
               color: "#1a1a1a",
-              lineHeight: 1.3,
+              lineHeight: 1.35,
               letterSpacing: "-0.2px",
-              minHeight: "2.6em", // Asegura que conserve el espacio si el texto ocupa 1 o 2 líneas
+              minHeight: "2.7em",
               display: "-webkit-box",
               WebkitLineClamp: 2,
               WebkitBoxOrient: "vertical",
@@ -198,16 +220,24 @@ const TarjetaCurso = ({ curso, onEdit, onDelete, index }) => {
             {curso.titulo}
           </Typography>
 
-          {/* DATOS TÉCNICOS: MAESTRO Y SALÓN */}
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
-              <PersonRoundedIcon
-                sx={{ fontSize: 16, color: "text.secondary" }}
-              />
+          {/* DATOS TÉCNICOS: MAESTRO Y SALÓN CON TOQUE EDITORIAL */}
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.2 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  p: 0.6,
+                  borderRadius: "6px",
+                  bgcolor: "#fdf2f5",
+                  color: "#f06292",
+                }}
+              >
+                <PersonRoundedIcon sx={{ fontSize: 15 }} />
+              </Box>
               <Typography
                 variant='body2'
                 color='text.secondary'
-                fontWeight='500'
+                fontWeight='600'
                 noWrap
                 sx={{ flexGrow: 1 }}
               >
@@ -215,14 +245,22 @@ const TarjetaCurso = ({ curso, onEdit, onDelete, index }) => {
               </Typography>
             </Box>
 
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1.2 }}>
-              <MeetingRoomRoundedIcon
-                sx={{ fontSize: 16, color: "text.secondary" }}
-              />
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  p: 0.6,
+                  borderRadius: "6px",
+                  bgcolor: "#f3e5f5",
+                  color: "#ba68c8",
+                }}
+              >
+                <MeetingRoomRoundedIcon sx={{ fontSize: 15 }} />
+              </Box>
               <Typography
                 variant='body2'
                 color='text.secondary'
-                fontWeight='500'
+                fontWeight='600'
                 noWrap
                 sx={{ flexGrow: 1 }}
               >
@@ -231,8 +269,16 @@ const TarjetaCurso = ({ curso, onEdit, onDelete, index }) => {
             </Box>
           </Box>
 
+          {/* DIVIDER DEGRADADO SUTIL */}
           <Divider
-            sx={{ mt: "auto", pt: 1, borderColor: "rgba(0,0,0,0.05)" }}
+            sx={{
+              mt: "auto",
+              pt: 0.5,
+              borderBottomWidth: 1,
+              background:
+                "linear-gradient(90deg, rgba(240,98,146,0.3) 0%, rgba(240,98,146,0.05) 100%)",
+              borderBottom: "none",
+            }}
           />
 
           {/* FOOTER: FECHA Y PRECIO */}
@@ -243,24 +289,26 @@ const TarjetaCurso = ({ curso, onEdit, onDelete, index }) => {
               alignItems: "center",
             }}
           >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 0.6 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.7 }}>
               <CalendarMonthRoundedIcon
-                sx={{ fontSize: 14, color: "text.disabled" }}
+                sx={{ fontSize: 15, color: "text.disabled" }}
               />
               <Typography
                 variant='caption'
-                sx={{ color: "text.disabled", fontWeight: 600 }}
+                sx={{ color: "text.secondary", fontWeight: 700 }}
               >
                 {curso.fecha_inicio}
+                {curso.tipo_curso === "Curso" ? ` al ${curso.fecha_fin}` : ""}
               </Typography>
             </Box>
 
             <Typography
-              variant='subtitle1'
+              variant='h6'
               sx={{
                 fontWeight: 900,
                 color: "#d81b60",
                 letterSpacing: "-0.5px",
+                fontSize: "1.15rem",
               }}
             >
               {formatPrecio(curso.costo)}

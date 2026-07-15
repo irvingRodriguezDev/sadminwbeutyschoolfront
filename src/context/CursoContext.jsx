@@ -57,6 +57,7 @@ export const CursoProvider = ({ children }) => {
       titulo, 
       costo, 
       fecha_inicio,
+      fecha_fin,
       tipo_curso,
       salon:salones(capacidad),
       enrollments(id) 
@@ -77,8 +78,8 @@ export const CursoProvider = ({ children }) => {
       let query = supabase
         .from("cursos")
         .select(
-          `id, titulo, tipo_curso, flayer_url, maestro, costo, fecha_inicio,
-           salon:salones(nombre, capacidad)`,
+          `id, titulo, tipo_curso, flayer_url, maestro, costo, fecha_inicio, fecha_fin, descripcion, lista_materiales, hora_inicio, hora_fin, temario, plan_pagos,
+           salon:salones(id, nombre, capacidad)`,
           { count: "exact" },
         )
         .eq("school_id", schoolId);

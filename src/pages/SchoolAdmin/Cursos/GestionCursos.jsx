@@ -138,7 +138,10 @@ const GestionCursos = () => {
           <>
             <Grid container spacing={3}>
               {cursos.map((curso) => (
-                <Grid size={{ xs: 12, sm: 6, md: 6, lg: 3 }} key={curso.id}>
+                <Grid
+                  size={{ xs: 12, sm: 6, md: 6, lg: 3, xl: 3 }}
+                  key={curso.id}
+                >
                   <TarjetaCurso
                     curso={curso}
                     onEdit={() => handleEdit(curso)}

@@ -10,7 +10,6 @@ import FontFamily from "@tiptap/extension-font-family";
 import Highlight from "@tiptap/extension-highlight";
 import TextAlign from "@tiptap/extension-text-align";
 
-// Importación estricta de Grid2, eliminando cualquier rastro de Box
 import {
   Grid,
   ToggleButton,
@@ -44,7 +43,6 @@ import {
   InsertEmoticon,
 } from "@mui/icons-material";
 
-// Categorías completas de Emojis Nativos Unicode soportados por todos los navegadores
 const EMOJI_CATEGORIES = [
   {
     label: "Gestos",
@@ -60,7 +58,6 @@ const EMOJI_CATEGORIES = [
       "⭐",
       "🔥",
       "🙌",
-      "col",
       "🥰",
       "👍",
       "✌️",
@@ -114,8 +111,6 @@ const TipTapEditor = ({
   placeholder = "Escribe el temario con estilo...",
 }) => {
   const colorInputRef = useRef(null);
-
-  // Estados para el control del menú desplegable del Selector Completo de Emojis
   const [anchorElEmoji, setAnchorElEmoji] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
   const openEmojiMenu = Boolean(anchorElEmoji);
@@ -194,7 +189,6 @@ const TipTapEditor = ({
           borderBottom: "1px solid rgba(0, 0, 0, 0.06)",
         }}
       >
-        {/* Historial */}
         <ToggleButtonGroup size='small'>
           <ToggleButton
             value='undo'
@@ -214,7 +208,6 @@ const TipTapEditor = ({
 
         <Divider orientation='vertical' flexItem sx={{ my: 0.5 }} />
 
-        {/* Formatos Semánticos */}
         <Select
           size='small'
           value={
@@ -246,7 +239,6 @@ const TipTapEditor = ({
 
         <Divider orientation='vertical' flexItem sx={{ my: 0.5 }} />
 
-        {/* Estilos Básicos */}
         <ToggleButtonGroup size='small'>
           <ToggleButton
             value='bold'
@@ -273,7 +265,6 @@ const TipTapEditor = ({
 
         <Divider orientation='vertical' flexItem sx={{ my: 0.5 }} />
 
-        {/* Alineación */}
         <ToggleButtonGroup
           size='small'
           value={editor.getAttributes("paragraph").textAlign || "left"}
@@ -311,7 +302,6 @@ const TipTapEditor = ({
 
         <Divider orientation='vertical' flexItem sx={{ my: 0.5 }} />
 
-        {/* Listas */}
         <ToggleButtonGroup size='small'>
           <ToggleButton
             value='bulletList'
@@ -331,7 +321,6 @@ const TipTapEditor = ({
 
         <Divider orientation='vertical' flexItem sx={{ my: 0.5 }} />
 
-        {/* Color de Texto Infinito */}
         <Grid
           sx={{ display: "flex", alignItems: "center", position: "relative" }}
         >
@@ -365,7 +354,6 @@ const TipTapEditor = ({
           </Tooltip>
         </Grid>
 
-        {/* Resaltador */}
         <IconButton
           size='small'
           onClick={() =>
@@ -378,7 +366,6 @@ const TipTapEditor = ({
 
         <Divider orientation='vertical' flexItem sx={{ my: 0.5 }} />
 
-        {/* Enlaces */}
         <ToggleButtonGroup size='small'>
           <ToggleButton
             value='link'
@@ -398,7 +385,6 @@ const TipTapEditor = ({
 
         <Divider orientation='vertical' flexItem sx={{ my: 0.5 }} />
 
-        {/* 🔥 COMODÍN: BOTÓN SELECTOR DE TODOS LOS EMOJIS NATIVOS */}
         <Tooltip title='Insertar Emojis'>
           <IconButton
             size='small'
@@ -408,7 +394,6 @@ const TipTapEditor = ({
           </IconButton>
         </Tooltip>
 
-        {/* Menú Desplegable con Pestañas Categorizadas de Emojis */}
         <Menu
           anchorEl={anchorElEmoji}
           open={openEmojiMenu}
@@ -429,14 +414,13 @@ const TipTapEditor = ({
             value={activeTab}
             onChange={(_, newValue) => setActiveTab(newValue)}
             variant='fullWidth'
-            size='small'
             sx={{
               minHeight: 32,
               mb: 1,
               "& .MuiTab-root": { fontSize: "0.72rem", py: 0.5, minHeight: 32 },
             }}
           >
-            {EMOJI_CATEGORIES.map((cat, idx) => (
+            {EMOJI_CATEGORIES.map((cat) => (
               <Tab key={cat.label} label={cat.label} />
             ))}
           </Tabs>
@@ -452,7 +436,7 @@ const TipTapEditor = ({
                   size='small'
                   onClick={() => {
                     editor.chain().focus().insertContent(emoji).run();
-                    setAnchorElEmoji(null); // Cierra tras inyectar
+                    setAnchorElEmoji(null);
                   }}
                   sx={{ fontSize: "1.2rem", p: 0.5, borderRadius: "8px" }}
                 >
@@ -464,13 +448,13 @@ const TipTapEditor = ({
         </Menu>
       </Grid>
 
-      {/* 2. ÁREA DE EDICIÓN CON CORRECCIÓN DE CONTRASTE EN H1 */}
+      {/* 2. ÁREA DE EDICIÓN CON AJUSTES DE INTERLINEADO OPTIMIZADOS */}
       <Grid
         size={12}
         sx={{
           p: 3,
           minHeight: "220px",
-          maxHeight: "400px",
+          maxHeight: "auto",
           overflowY: "auto",
           "& .ProseMirror": {
             outline: "none",
@@ -478,9 +462,9 @@ const TipTapEditor = ({
             fontSize: "0.95rem",
             color: "#2A2628",
             minHeight: "180px",
-            lineHeight: "1.7",
+            // 🌟 OPTIMIZACIÓN: Cambiado de 1.7 a 1.5 para un ritmo visual más compacto y moderno
+            lineHeight: "1.2",
           },
-          // Forzamos alineación inicial a la izquierda
           "& .ProseMirror p, & .ProseMirror h1, & .ProseMirror h2, & .ProseMirror li":
             {
               textAlign: "left",
@@ -498,31 +482,37 @@ const TipTapEditor = ({
             textAlign: "left !important",
           },
 
-          // 🔥 CORRECCIÓN: Forzamos a que el H1 adopte por defecto el color corporativo oscuro en lugar de gris claro
           "& .ProseMirror h1": {
             fontFamily: "'Montserrat', sans-serif",
-            fontSize: "1.8rem",
-            margin: "0 0 0.5em 0",
+            fontSize: "1.6rem",
+            margin: "0 0 0.6rem 0", // Margen equilibrado para títulos
             fontWeight: 800,
-            color: "#2A2628 !important", // Asegura que no se diluya ni pierda contraste
+            color: "#2A2628 !important",
           },
-          // Si el usuario le aplica un color infinito al H1, permitimos que se sobreescriba dinámicamente
-          "& .ProseMirror h1[style*='color']": {
-            color: "inherit !important",
-          },
+          "& .ProseMirror h1[style*='color']": { color: "inherit !important" },
 
           "& .ProseMirror h2": {
             fontFamily: "'Montserrat', sans-serif",
-            fontSize: "1.3rem",
-            margin: "0 0 0.5em 0",
+            fontSize: "1.25rem",
+            margin: "1rem 0 0.5rem 0", // Agrega un poco de aire arriba y menos abajo
             fontWeight: 700,
             color: "#2A2628",
           },
-          "& .ProseMirror p": { margin: "0 0 1em 0" },
+
+          // 🌟 CORRECCIÓN CRÍTICA: Reducción drástica del margen inferior de los párrafos creados por Enter
+          "& .ProseMirror p": {
+            margin: "0 0 0.4rem 0",
+          },
+
+          // 🌟 ADICIÓN: Controlamos que los elementos de lista (bullets) queden juntos y limpios
           "& .ProseMirror ul, & .ProseMirror ol": {
             paddingLeft: "1.5em",
-            margin: "0 0 1em 0",
+            margin: "0 0 0.6rem 0",
           },
+          "& .ProseMirror li": {
+            margin: "0 0 0.25rem 0", // Espaciado fino entre cada elemento de la lista
+          },
+
           "& .tiptap-link": {
             color: "#E91E63",
             textDecoration: "underline",

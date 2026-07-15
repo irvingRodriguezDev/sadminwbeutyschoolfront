@@ -1,11 +1,12 @@
 import React from "react";
 import { Box, Chip, Grid, Paper, Stack, Typography } from "@mui/material";
 import { FiberManualRecord } from "@mui/icons-material";
-// 🌟 Importamos la ilustración (asegúrate de tener el archivo en tus assets)
 import NoActivitiesSvg from "../../../assets/no_activities.svg";
+import ClassIcon from "../../Icons/ClassIcon";
+import TimeIcon from "../../Icons/TimeIcon";
+import CalendarIcon from "../../Icons/CalendarIcon";
 
 const ActivitiesToday = ({ actividadesHoy = [] }) => {
-  // 🚀 VALIDACIÓN: ¿Está vacío el listado de actividades?
   const hasActivities = actividadesHoy && actividadesHoy.length > 0;
 
   return (
@@ -24,7 +25,6 @@ const ActivitiesToday = ({ actividadesHoy = [] }) => {
         </Typography>
 
         {hasActivities ? (
-          /* 📅 RENDER CON ACTIVIDADES */
           <Stack spacing={2}>
             {actividadesHoy.map((item, i) => (
               <Box
@@ -40,18 +40,35 @@ const ActivitiesToday = ({ actividadesHoy = [] }) => {
                 }}
               >
                 <Box>
-                  <Typography variant='subtitle1' fontWeight='bold'>
-                    {item.title}
-                  </Typography>
+                  {/* 🌟 TÍTULO: Alineamos el icono al centro vertical del texto */}
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <ClassIcon
+                      width={16}
+                      height={16}
+                      style={{ color: "#f06292" }}
+                    />
+                    <Typography variant='subtitle1' fontWeight='bold'>
+                      {item.title}
+                    </Typography>
+                  </Box>
+
+                  {/* 🌟 HORARIO Y SALÓN: Unificado y corregido a 16px para mantener proporción */}
                   <Stack
                     direction='row'
                     spacing={1}
-                    sx={{ mt: 0.5, alignItems: "center" }}
+                    sx={{ mt: 0.75, alignItems: "center" }}
                   >
-                    <Typography variant='caption' color='textSecondary'>
-                      {item.time}
-                    </Typography>
+                    <Box
+                      sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                    >
+                      <TimeIcon width={16} height={16} />
+                      <Typography variant='caption' color='textSecondary'>
+                        {item.time}
+                      </Typography>
+                    </Box>
+
                     <FiberManualRecord sx={{ fontSize: 6, color: "#f06292" }} />
+
                     <Typography
                       variant='caption'
                       color='primary'
@@ -60,7 +77,25 @@ const ActivitiesToday = ({ actividadesHoy = [] }) => {
                       {item.classroom}
                     </Typography>
                   </Stack>
+
+                  {/* 🌟 FECHAS DEL CURSO: Limpio, alineado y estandarizado */}
+                  <Stack
+                    direction='row'
+                    spacing={1}
+                    sx={{ mt: 0.5, alignItems: "center" }}
+                  >
+                    <Box
+                      sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                    >
+                      <CalendarIcon width={16} height={16} />
+                      <Typography variant='caption' color='textSecondary'>
+                        Del <b>{item.fecha_inicio}</b> al{" "}
+                        <b>{item.fecha_fin}</b>
+                      </Typography>
+                    </Box>
+                  </Stack>
                 </Box>
+
                 <Chip
                   label={item.type.toUpperCase()}
                   size='small'
@@ -92,7 +127,6 @@ const ActivitiesToday = ({ actividadesHoy = [] }) => {
               },
             }}
           >
-            {/* Contenedor responsivo para el vector */}
             <Box
               sx={{
                 width: "100%",

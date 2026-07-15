@@ -68,7 +68,7 @@ export const AdminSchoolProvider = ({ children }) => {
           .from("cursos")
           .select(
             `
-          id, titulo, tipo_curso, hora_inicio, hora_fin,
+          id, titulo, tipo_curso, hora_inicio, hora_fin, fecha_inicio, fecha_fin,
           salones (nombre)
         `,
           )
@@ -122,6 +122,8 @@ export const AdminSchoolProvider = ({ children }) => {
           time: `${item.hora_inicio?.substring(0, 5) || "00:00"} - ${item.hora_fin?.substring(0, 5) || "00:00"}`,
           classroom: item.salones?.nombre || "Salón General",
           type: item.tipo_curso || "Curso",
+          fecha_inicio: item.fecha_inicio,
+          fecha_fin: item.fecha_fin,
         }),
       );
 

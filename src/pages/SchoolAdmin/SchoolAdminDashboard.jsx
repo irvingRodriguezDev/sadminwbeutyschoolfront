@@ -26,6 +26,7 @@ const SchoolAdminDashboard = () => {
       </Box>
     );
   }
+  console.log(actividadesHoy, "las actividades de hoy");
 
   return (
     <Box>
