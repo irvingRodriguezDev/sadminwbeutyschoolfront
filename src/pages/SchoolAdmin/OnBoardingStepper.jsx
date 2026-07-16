@@ -43,7 +43,15 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isPreparando, setIsPreparando] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState(null);
+  const [phoneNumber, setPhoneNumber] = useState(() => {
+    return localStorage.getItem("phone") || ""; // Aseguramos que sea un string vacío por defecto en vez de null
+  });
+  const handleChangePhone = (phone) => {
+    // Opcional: Si quieres guardar solo números desde el input
+    const cleanPhone = phone.replace(/\D/g, "");
+    localStorage.setItem("phone", cleanPhone);
+    setPhoneNumber(cleanPhone);
+  };
   // Estado temporal de Stripe en memoria local del asistente
   const [stripeConnected, setStripeConnected] = useState(() => {
     return localStorage.getItem("stripe_connected_local") === "true";
@@ -170,6 +178,13 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
         );
         return;
       }
+      if (!phoneNumber || phoneNumber.length < 10) {
+        alerts.error(
+          "Teléfono requerido",
+          "Por favor ingresa un número de teléfono de WhatsApp válido (mínimo 10 dígitos).",
+        );
+        return;
+      }
     }
 
     if (activeStep === 1 && !stripeConnected) {
@@ -198,6 +213,7 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
         updated_at: new Date(),
         number_phone: phoneNumber || null, // Guardamos el número de teléfono si está disponible
       };
+      console.log(updates);
 
       const { error } = await supabase
         .from("schools")
@@ -217,6 +233,7 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
       localStorage.removeItem("onboarding_step");
       localStorage.removeItem("stripe_connected_local");
       localStorage.removeItem("temp_stripe_account_id");
+      localStorage.removeItem("phone");
 
       // ⏳ PASO 2: Le damos 3 segundos de transición para deleite visual
       setTimeout(() => {
@@ -270,7 +287,8 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
             locationData={locationData}
             setLocationData={setLocationData}
             isSubiendoLogo={isSubiendoLogo}
-            setPhoneNumber={setPhoneNumber}
+            handleChangePhone={handleChangePhone}
+            phoneNumber={phoneNumber}
           />
         )}
 

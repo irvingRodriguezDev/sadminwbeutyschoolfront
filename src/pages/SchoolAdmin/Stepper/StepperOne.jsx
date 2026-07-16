@@ -15,7 +15,8 @@ const StepperOne = ({
   handleLogoChange,
   isSubiendoLogo,
   locationData,
-  setPhoneNumber,
+  handleChangePhone,
+  phoneNumber,
 }) => {
   return (
     <Box
@@ -97,26 +98,37 @@ const StepperOne = ({
       </Box>
       <TextField
         type='tel'
-        label='Teléfono de Contacto'
-        placeholder='Ej:5512345678'
+        label='Teléfono de Contacto (WhatsApp)'
+        placeholder='Ej: 5512345678'
+        required
+        defaultValue={phoneNumber} // 🌟 CLAVE: Vincula el estado para que no se borre visualmente
         onChange={(e) => {
-          const newPhone = e.target.value;
-          setPhoneNumber(newPhone); // Actualizamos el estado del número de teléfono
+          // Solo permitimos que el usuario escriba números
+          const rawValue = e.target.value.replace(/\D/g, "");
+          handleChangePhone(rawValue);
         }}
         fullWidth
         variant='outlined'
+        slotProps={{
+          htmlInput: {
+            maxLength: 13, // Limita una longitud máxima razonable incluyendo código de país si aplica
+          },
+        }}
         sx={{
           "& .MuiInputLabel-root": { fontWeight: 600 },
           "& .MuiOutlinedInput-root": {
-            borderRadius: "10px",
+            borderRadius: "12px",
+            backgroundColor: "rgba(255, 255, 255, 0.6)",
+            transition: "all 0.3s ease",
             "& fieldset": {
-              borderColor: "rgba(240, 98, 146, 0.5)",
+              borderColor: "rgba(240, 98, 146, 0.3)",
             },
             "&:hover fieldset": {
               borderColor: "#E21F8B",
             },
             "&.Mui-focused fieldset": {
               borderColor: "#E21F8B",
+              boxShadow: "0 0 8px rgba(226, 31, 139, 0.15)",
             },
           },
         }}
