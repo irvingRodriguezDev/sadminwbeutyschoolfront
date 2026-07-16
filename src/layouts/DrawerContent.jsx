@@ -103,13 +103,23 @@ const DrawerContent = ({
           fontWeight='bold'
           sx={{ color: "#f06292", ml: 1, width: "100%" }}
         >
-          <img
-            src={LogoWapizima}
-            width={"100%"}
-            height={50}
-            style={{ objectFit: "contain" }}
-            alt='Wapizima Logo'
-          />
+          {profile.rol === "SuperAdmin" ? (
+            <img
+              src={LogoWapizima}
+              width={"100%"}
+              height={50}
+              style={{ objectFit: "contain" }}
+              alt='Wapizima Logo'
+            />
+          ) : (
+            <img
+              src={profile.escuela?.logo_url}
+              width={"100%"}
+              height={50}
+              style={{ objectFit: "contain" }}
+              alt={`Logo academia ${profile.escuela.name}`}
+            />
+          )}
         </Typography>
         <IconButton
           onClick={handleDrawerToggle}

@@ -37,6 +37,7 @@ const drawerWidth = 280;
 
 const DashboardLayout = () => {
   const { profile } = useAuth(); // Asumimos que profile trae { rol, escuela_configurada, ... }
+
   const location = useLocation();
   const navigate = useNavigate();
   const theme = useTheme();
