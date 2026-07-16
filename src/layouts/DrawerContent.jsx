@@ -103,7 +103,7 @@ const DrawerContent = ({
           fontWeight='bold'
           sx={{ color: "#f06292", ml: 1, width: "100%" }}
         >
-          {profile.rol === "SuperAdmin" ? (
+          {profile?.rol === "superadmin" ? (
             <img
               src={LogoWapizima}
               width={"100%"}
@@ -112,13 +112,15 @@ const DrawerContent = ({
               alt='Wapizima Logo'
             />
           ) : (
-            <img
-              src={profile.escuela?.logo_url}
-              width={"100%"}
-              height={50}
-              style={{ objectFit: "contain" }}
-              alt={`Logo academia ${profile.escuela.name}`}
-            />
+            profile?.rol === "school_admin" && (
+              <img
+                src={profile.escuela?.logo_url}
+                width={"100%"}
+                height={50}
+                style={{ objectFit: "contain" }}
+                alt={`Logo academia ${profile?.escuela?.name}`}
+              />
+            )
           )}
         </Typography>
         <IconButton
