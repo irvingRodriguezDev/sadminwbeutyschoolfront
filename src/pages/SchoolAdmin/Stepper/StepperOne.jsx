@@ -3,6 +3,7 @@ import {
   Button,
   CircularProgress,
   Divider,
+  TextField,
   Typography,
 } from "@mui/material";
 import React from "react";
@@ -14,6 +15,7 @@ const StepperOne = ({
   handleLogoChange,
   isSubiendoLogo,
   locationData,
+  setPhoneNumber,
 }) => {
   return (
     <Box
@@ -84,7 +86,42 @@ const StepperOne = ({
       )}
 
       <Divider sx={{ width: "100%", borderColor: "rgba(0,0,0,0.05)", my: 1 }} />
-
+      <Box>
+        <Typography variant='h6' sx={{ fontWeight: 800, color: "#1a1a1a" }}>
+          Información de Contacto
+        </Typography>
+        <Typography variant='body2' color='text.secondary'>
+          Ingresa el número de teléfono principal de tu academia para que los
+          clientes puedan contactarte.
+        </Typography>
+      </Box>
+      <TextField
+        type='tel'
+        label='Teléfono de Contacto'
+        placeholder='Ej:5512345678'
+        onChange={(e) => {
+          const newPhone = e.target.value;
+          setPhoneNumber(newPhone); // Actualizamos el estado del número de teléfono
+        }}
+        fullWidth
+        variant='outlined'
+        sx={{
+          "& .MuiInputLabel-root": { fontWeight: 600 },
+          "& .MuiOutlinedInput-root": {
+            borderRadius: "10px",
+            "& fieldset": {
+              borderColor: "rgba(240, 98, 146, 0.5)",
+            },
+            "&:hover fieldset": {
+              borderColor: "#E21F8B",
+            },
+            "&.Mui-focused fieldset": {
+              borderColor: "#E21F8B",
+            },
+          },
+        }}
+      />
+      <Divider sx={{ width: "100%", borderColor: "rgba(0,0,0,0.05)", my: 1 }} />
       <Box
         sx={{
           width: "100%",

@@ -15,6 +15,7 @@ import { supabase } from "../../config/supabaseClient";
 import { Link, useNavigate } from "react-router-dom";
 import { alerts } from "../../utils/alerts";
 import { Turnstile } from "@marsidev/react-turnstile";
+
 const Login = () => {
   const cloudflareKey = import.meta.env.VITE_CLOUDFLARE_KEY;
   const [email, setEmail] = useState("");
@@ -25,15 +26,23 @@ const Login = () => {
   const [token, setToken] = useState(null);
   const turnstileRef = useRef(null);
 
+  // Helper centralizado para resetear el captcha de forma segura
+  const resetCaptcha = () => {
+    setToken(null);
+    if (turnstileRef.current) {
+      turnstileRef.current.reset();
+    }
+  };
+
   const handleLogin = async (e) => {
-    // 1. Detener la recarga del navegador INMEDIATAMENTE
     e.preventDefault();
 
-    // 2. Validar si el captcha ya dio luz verde
     if (!token) {
       alerts.error(
         "Por favor, espera a que se complete la verificación de seguridad.",
       );
+      // Intentamos forzar un render del widget si el usuario da click y no hay token activo
+      resetCaptcha();
       return;
     }
 
@@ -48,8 +57,8 @@ const Login = () => {
 
     if (error) {
       alerts.error("¡Cuidado!", error.message);
-      turnstileRef.current?.reset();
-      setToken(null);
+      // 🚨 IMPORTANTE: Reseteamos siempre para que el usuario pueda intentar de nuevo
+      resetCaptcha();
     } else if (data.user) {
       navigate("/dashboard");
     }
@@ -79,7 +88,7 @@ const Login = () => {
               background: "rgba(255, 255, 255, 0.4)",
               backdropFilter: "blur(15px)",
               border: "1px solid rgba(255, 255, 255, 0.5)",
-              borderRadius: 2,
+              borderRadius: 4, // Un poco más redondeado para el look premium
             }}
           >
             <Typography
@@ -87,6 +96,7 @@ const Login = () => {
               fontWeight='bold'
               color='primary'
               gutterBottom
+              sx={{ fontFamily: "'Montserrat', sans-serif" }}
             >
               Bienvenido
             </Typography>
@@ -142,31 +152,41 @@ const Login = () => {
                   },
                 }}
               />
-              <Link
-                style={{ textDecoration: "none" }}
-                to={"/recuperar-password"}
-              >
-                <Typography variant='body2' color='primary'>
-                  Olvidaste tu contraseña <b>Haz Click aquí</b>
-                </Typography>
-              </Link>
+
+              <Box sx={{ textAlign: "right", mt: 1, mb: 2 }}>
+                <Link
+                  style={{ textDecoration: "none" }}
+                  to={"/recuperar-password"}
+                >
+                  <Typography
+                    variant='body2'
+                    color='primary'
+                    sx={{ fontWeight: 600 }}
+                  >
+                    ¿Olvidaste tu contraseña? <b>Haz clic aquí</b>
+                  </Typography>
+                </Link>
+              </Box>
+
+              {/* 🛡️ CONTENEDOR DE TURNSTILE PREMIUM */}
               <Box
                 sx={{
                   my: 3,
                   display: "flex",
                   justifyContent: "center",
                   width: "100%",
-                  // ✨ Filtramos el contenedor para suavizarlo e integrarlo a la paleta
-                  "& div": {
-                    borderRadius: "20px !important", // Forzamos esquinas ultra redondeadas premium
+                  minHeight: "70px", // Previene saltos de layout bruscos en carga
+                  // ✨ Estilo visual para integrarlo limpiamente a la app
+                  "& .cf-turnstile": {
+                    borderRadius: "16px !important",
                     overflow: "hidden",
-                    boxShadow: "0px 8px 24px rgba(240, 98, 146, 0.15)", // Resplandor rosa Wapizima
-                    border: "1px solid rgba(240, 98, 146, 0.2)", // Borde rosa ultra fino
-                    bgcolor: "#F16B99",
+                    boxShadow: "0px 8px 24px rgba(240, 98, 146, 0.12)",
+                    border: "1px solid rgba(240, 98, 146, 0.15)",
                   },
-                  // Opcional: Si quieres suavizar un poco la intensidad de sus colores nativos
+                  // 🚨 Evitamos filtros extremos sobre el iframe que confunden al bot de Cloudflare
                   "& iframe": {
-                    filter: "hue-rotate(100deg) saturate(1.5) brightness(0.5)",
+                    opacity: 0.95,
+                    transition: "opacity 0.3s ease",
                   },
                 }}
               >
@@ -174,12 +194,15 @@ const Login = () => {
                   ref={turnstileRef}
                   siteKey={cloudflareKey}
                   onSuccess={(token) => setToken(token)}
-                  onExpire={() => setToken(null)}
+                  onExpire={() => {
+                    // Si expira por estar mucho tiempo en pantalla, se autoregenera solo
+                    resetCaptcha();
+                  }}
                   onError={() => {
                     alerts.error(
-                      "Hubo un problema con la verificación de seguridad. Reintentando...",
+                      "Error de verificación. Reintentando de forma automática...",
                     );
-                    setToken(null);
+                    resetCaptcha();
                   }}
                   options={{
                     theme: "light",
@@ -187,13 +210,26 @@ const Login = () => {
                   }}
                 />
               </Box>
+
               <Button
                 fullWidth
                 size='large'
                 type='submit'
                 variant='contained'
                 disabled={loading}
-                sx={{ mt: 3, py: 1.5, fontWeight: "bold", borderRadius: 1 }}
+                sx={{
+                  mt: 1,
+                  py: 1.5,
+                  fontWeight: "bold",
+                  borderRadius: "12px",
+                  background:
+                    "linear-gradient(135deg, #E53888 0%, #ff6fa5 100%)",
+                  boxShadow: "0px 8px 20px rgba(229, 56, 136, 0.25)",
+                  "&:hover": {
+                    background:
+                      "linear-gradient(135deg, #cc2e75 0%, #e0568c 100%)",
+                  },
+                }}
               >
                 {loading ? "Entrando..." : "Iniciar Sesión"}
               </Button>

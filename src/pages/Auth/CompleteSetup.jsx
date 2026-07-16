@@ -10,6 +10,7 @@ import {
   InputAdornment,
   IconButton,
   Fade,
+  CircularProgress,
 } from "@mui/material";
 import {
   Visibility,
@@ -22,6 +23,7 @@ import { useNavigate } from "react-router-dom";
 import LoadingScreen from "../../components/common/LoadingScreen";
 import { alerts } from "../../utils/alerts";
 import { Turnstile } from "@marsidev/react-turnstile";
+
 const CompleteSetup = () => {
   const cloudflareKey = import.meta.env.VITE_CLOUDFLARE_KEY;
   const [password, setPassword] = useState("");
@@ -32,56 +34,76 @@ const CompleteSetup = () => {
   const navigate = useNavigate();
   const [token, setToken] = useState(null);
   const turnstileRef = useRef(null);
-  useEffect(() => {
-    // 1. Validar si el link nos dio una sesión automática
-    const checkSession = async () => {
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession();
 
-      if (error || !session) {
-        console.error("No se encontró sesión activa del enlace");
-        // Opcional: podrías redirigir al login si el link es viejo
+  useEffect(() => {
+    // Validar si el link nos dio una sesión automática
+    const checkSession = async () => {
+      try {
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
+        if (error || !session) {
+          console.error("No se encontró sesión activa del enlace");
+          alerts.error(
+            "El enlace de configuración no es válido o ha expirado.",
+          );
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setVerifying(false);
       }
-      setVerifying(false);
-      setLoading(false);
     };
 
     checkSession();
   }, []);
 
+  // Helper centralizado para reiniciar el captcha limpiamente
+  const resetCaptcha = () => {
+    setToken(null);
+    if (turnstileRef.current) {
+      turnstileRef.current.reset();
+    }
+  };
+
   const handleFinish = async (e) => {
     e.preventDefault();
-    // 2. Validar si el captcha ya dio luz verde
+
     if (!token) {
       alerts.error(
         "Por favor, espera a que se complete la verificación de seguridad.",
       );
+      resetCaptcha();
       return;
     }
+
     setLoading(true);
 
-    // 2. Intentar actualizar la contraseña
+    // Intentar actualizar la contraseña
     const { error } = await supabase.auth.updateUser({ password });
 
     if (error) {
-      // Si sigue saliendo authSessionMissing, es que el token expiró
-      alerts.error("Error: " + error.message);
-      turnstileRef.current?.reset();
-      setToken(null);
+      alerts.error("¡Ups!", error.message);
+      resetCaptcha(); // Re-inicializar captcha inmediatamente tras el fallo
       setLoading(false);
     } else {
+      setSuccess(true);
       alerts.success("¡Correcto!", "¡Contraseña establecida con éxito!");
-      // 3. Importante: cerrar sesión para limpiar el token del link
-      await supabase.auth.signOut();
-      navigate("/login");
+
+      // Esperar un momento para la animación de éxito antes de desloguear y redirigir
+      setTimeout(async () => {
+        await supabase.auth.signOut();
+        navigate("/login");
+      }, 3000);
     }
   };
 
-  if (verifying)
+  // Solo mostramos la pantalla de carga inicial al verificar el token del enlace de correo
+  if (verifying) {
     return <LoadingScreen message='Verificando enlace de invitación...' />;
-  if (loading) return <LoadingScreen message='Guardando configuración...' />;
+  }
 
   return (
     <Box
@@ -91,42 +113,63 @@ const CompleteSetup = () => {
         alignItems: "center",
         background: "linear-gradient(135deg, #fce4ec 0%, #f06292 100%)",
         py: 4,
+        px: 2,
       }}
     >
-      <Container maxWidth='xs'>
+      <Container maxWidth='xs' disableGutters>
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
         >
           <Paper
             elevation={0}
             sx={{
-              p: 5,
+              p: { xs: 4, sm: 5 },
               textAlign: "center",
-              background: "rgba(255, 255, 255, 0.4)",
+              background: "rgba(255, 255, 255, 0.45)",
               backdropFilter: "blur(20px)",
-              border: "1px solid rgba(255, 255, 255, 0.4)",
-              borderRadius: 2,
-              // boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.15)",
+              border: "1px solid rgba(255, 255, 255, 0.5)",
+              borderRadius: "28px", // Bordes más suaves que combinan con tu app
+              boxShadow: "0 24px 50px rgba(240, 98, 146, 0.15)",
             }}
           >
+            {/* Ícono dinámico */}
             <Box sx={{ mb: 3 }}>
-              <LockReset sx={{ fontSize: 60, color: "#F276A0" }} />
+              {success ? (
+                <CheckCircleOutlined sx={{ fontSize: 64, color: "#4caf50" }} />
+              ) : (
+                <LockReset sx={{ fontSize: 64, color: "#F06292" }} />
+              )}
             </Box>
 
             {!success ? (
               <>
                 <Typography
                   variant='h4'
-                  fontWeight='bold'
-                  color='white'
+                  fontWeight={800}
+                  color='primary'
                   gutterBottom
+                  sx={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontSize: { xs: "1.75rem", sm: "2rem" },
+                    color: "#D81B60",
+                  }}
                 >
                   Configura tu Acceso
                 </Typography>
-                <Typography variant='body1' sx={{ color: "#F06292", mb: 4 }}>
-                  Establece una contraseña segura para gestionar tu institución.
+
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: "#880E4F",
+                    mb: 4,
+                    fontWeight: 500,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  Establece una contraseña segura para comenzar a gestionar tu
+                  institución.
                 </Typography>
 
                 <form onSubmit={handleFinish}>
@@ -138,10 +181,11 @@ const CompleteSetup = () => {
                     variant='outlined'
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    disabled={loading}
                     sx={{
-                      borderRadius: 2,
-                      "& .MuiFilledInput-root": {
-                        backgroundColor: "transparent",
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "14px",
+                        backgroundColor: "rgba(255, 255, 255, 0.6)",
                       },
                     }}
                     slotProps={{
@@ -150,11 +194,12 @@ const CompleteSetup = () => {
                           <InputAdornment position='end'>
                             <IconButton
                               onClick={() => setShowPassword(!showPassword)}
+                              edge='end'
                             >
                               {showPassword ? (
-                                <VisibilityOff />
+                                <VisibilityOff sx={{ color: "#F06292" }} />
                               ) : (
-                                <Visibility />
+                                <Visibility sx={{ color: "#F06292" }} />
                               )}
                             </IconButton>
                           </InputAdornment>
@@ -162,24 +207,24 @@ const CompleteSetup = () => {
                       },
                     }}
                   />
+
+                  {/* 🛡️ CONTENEDOR TURNSTILE REFORZADO */}
                   <Box
                     sx={{
-                      my: 3,
+                      my: 3.5,
                       display: "flex",
                       justifyContent: "center",
                       width: "100%",
-                      // ✨ Filtramos el contenedor para suavizarlo e integrarlo a la paleta
-                      "& div": {
-                        borderRadius: "20px !important", // Forzamos esquinas ultra redondeadas premium
+                      minHeight: "72px", // Evita saltos de layout
+                      "& .cf-turnstile": {
+                        borderRadius: "16px !important",
                         overflow: "hidden",
-                        boxShadow: "0px 8px 24px rgba(240, 98, 146, 0.15)", // Resplandor rosa Wapizima
-                        border: "1px solid rgba(240, 98, 146, 0.2)", // Borde rosa ultra fino
-                        bgcolor: "#F16B99",
+                        boxShadow: "0px 8px 24px rgba(240, 98, 146, 0.12)",
+                        border: "1px solid rgba(240, 98, 146, 0.15)",
                       },
-                      // Opcional: Si quieres suavizar un poco la intensidad de sus colores nativos
                       "& iframe": {
-                        filter:
-                          "hue-rotate(100deg) saturate(1.5) brightness(0.5)",
+                        opacity: 0.95,
+                        transition: "opacity 0.3s ease",
                       },
                     }}
                   >
@@ -187,12 +232,12 @@ const CompleteSetup = () => {
                       ref={turnstileRef}
                       siteKey={cloudflareKey}
                       onSuccess={(token) => setToken(token)}
-                      onExpire={() => setToken(null)}
+                      onExpire={() => resetCaptcha()} // Si expira por inactividad, se auto-recupera sola
                       onError={() => {
                         alerts.error(
-                          "Hubo un problema con la verificación de seguridad. Reintentando...",
+                          "Error de verificación. Intentando reconectar...",
                         );
-                        setToken(null);
+                        resetCaptcha();
                       }}
                       options={{
                         theme: "light",
@@ -200,6 +245,7 @@ const CompleteSetup = () => {
                       }}
                     />
                   </Box>
+
                   <Button
                     fullWidth
                     size='large'
@@ -207,37 +253,48 @@ const CompleteSetup = () => {
                     variant='contained'
                     disabled={loading || password.length < 6}
                     sx={{
-                      mt: 4,
-                      py: 1.8,
+                      mt: 1,
+                      py: 1.6,
                       fontWeight: "bold",
-                      borderRadius: 2,
-                      backgroundColor: "white",
-                      color: "#f06292",
-                      "&:hover": { backgroundColor: "#fdf7f9" },
-                      boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                      borderRadius: "14px",
+                      background:
+                        "linear-gradient(135deg, #E53888 0%, #ff6fa5 100%)",
+                      color: "#white",
+                      boxShadow: "0 8px 25px rgba(229, 56, 136, 0.3)",
+                      "&:hover": {
+                        background:
+                          "linear-gradient(135deg, #cc2e75 0%, #e0568c 100%)",
+                      },
+                      transition: "all 0.3s ease",
                     }}
                   >
-                    {loading ? "Activando..." : "Activar mi Cuenta"}
+                    {loading ? (
+                      <CircularProgress size={24} sx={{ color: "#fff" }} />
+                    ) : (
+                      "Activar mi Cuenta"
+                    )}
                   </Button>
                 </form>
               </>
             ) : (
               <Fade in={success}>
-                <Box>
-                  <CheckCircleOutlined
-                    sx={{ fontSize: 80, color: "#4caf50", mb: 2 }}
-                  />
+                <Box sx={{ py: 2 }}>
                   <Typography
                     variant='h5'
                     fontWeight='bold'
-                    color='white'
+                    color='#2E7D32'
                     gutterBottom
+                    sx={{ fontFamily: "'Montserrat', sans-serif" }}
                   >
                     ¡Todo listo!
                   </Typography>
-                  <Typography variant='body1' color='white'>
-                    Tu contraseña ha sido guardada. Te redirigiremos al login en
-                    unos segundos...
+                  <Typography
+                    variant='body1'
+                    color='textSecondary'
+                    sx={{ fontWeight: 500 }}
+                  >
+                    Tu contraseña ha sido guardada con éxito. Te redirigiremos
+                    al login en unos instantes...
                   </Typography>
                 </Box>
               </Fade>

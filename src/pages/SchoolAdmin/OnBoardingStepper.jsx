@@ -43,6 +43,7 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isPreparando, setIsPreparando] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState(null);
   // Estado temporal de Stripe en memoria local del asistente
   const [stripeConnected, setStripeConnected] = useState(() => {
     return localStorage.getItem("stripe_connected_local") === "true";
@@ -195,6 +196,7 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
         stripe_account_id: tempAccountId || null,
         stripe_onboarding_complete: tempAccountId ? true : false,
         updated_at: new Date(),
+        number_phone: phoneNumber || null, // Guardamos el número de teléfono si está disponible
       };
 
       const { error } = await supabase
@@ -268,6 +270,7 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
             locationData={locationData}
             setLocationData={setLocationData}
             isSubiendoLogo={isSubiendoLogo}
+            setPhoneNumber={setPhoneNumber}
           />
         )}
 
