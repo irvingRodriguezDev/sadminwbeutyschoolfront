@@ -24,6 +24,7 @@ import GestionInscripciones from "./pages/SchoolAdmin/Inscripciones/GestionInscr
 import NewInscription from "./pages/SchoolAdmin/Inscripciones/NewInscriptionModal";
 import GestionFinanzas from "./pages/SchoolAdmin/Finanzas/GestionFinanzas";
 import ScannerView from "./pages/SchoolAdmin/Scanner/Scanner";
+import GestionGastos from "./pages/SchoolAdmin/Expenses/GestionGastos";
 function App() {
   const { loading, profile } = useAuth();
 
@@ -59,6 +60,7 @@ function App() {
           />
 
           <Route path='/finanzas' element={<GestionFinanzas />} />
+          <Route path='/Gastos' element={<GestionGastos />} />
           <Route path='/scanner-asistencia' element={<ScannerView />} />
 
           <Route path='/configuracion' element={<Settings />} />

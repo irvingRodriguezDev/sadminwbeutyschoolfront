@@ -23,6 +23,7 @@ import StyledNavItem from "../components/common/SidebarItem";
 import { useNavigate } from "react-router-dom";
 import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
+import CurrencyExchangeIcon from "@mui/icons-material/CurrencyExchange";
 const DrawerContent = ({
   LogoWapizima,
   handleDrawerToggle,
@@ -72,6 +73,12 @@ const DrawerContent = ({
       label: "Finanzas",
       icon: <RequestQuoteIcon />,
       path: "/finanzas",
+      roles: ["school_admin"],
+    },
+    {
+      label: "Gastos",
+      icon: <CurrencyExchangeIcon />,
+      path: "/Gastos",
       roles: ["school_admin"],
     },
     {
