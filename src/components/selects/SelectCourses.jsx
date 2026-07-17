@@ -20,20 +20,27 @@ const SelectCourses = (props) => {
   useEffect(() => {
     const loadSelectOptions = async () => {
       const res = await fetchCursos(profile.school_id, { isSelect: true });
+
       if (!res?.courses) return;
 
-      // ⏰ Control del tiempo real
+      // ⏰ Control del tiempo real (Zona Horaria México)
+      // Creamos la fecha de "hoy" a la medianoche (00:00:00) para comparar limpiamente solo días
       const hoy = new Date();
       hoy.setHours(0, 0, 0, 0);
 
-      // 🌸 Filtramos y mapeamos en un solo paso
+      // 🌸 Filtramos y mapeamos en un solo paso con el estándar premium de Wapizima
       const cursosValidos = res.courses
         .filter((c) => {
           if (!c.fecha_inicio) return false;
+
+          // Forzamos el parseo local a medianoche para evitar desfases de zona horaria por el string ISO
           const fechaCurso = new Date(`${c.fecha_inicio}T00:00:00`);
           fechaCurso.setHours(0, 0, 0, 0);
 
-          return fechaCurso >= hoy; // 🎯 REGLA 1: Solo cursos cuya fecha no haya pasado
+          // 🎯 Al comparar a nivel de medianoche (00:00:00), un curso que empieza hoy
+          // se mantendrá visible e igual (fechaCurso >= hoy) durante todo el día actual
+          // hasta que el reloj marque las 00:00:00 del día siguiente.
+          return fechaCurso >= hoy;
         })
         .map((c) => {
           const capacidad = c.salon?.capacidad || 0;
@@ -42,9 +49,11 @@ const SelectCourses = (props) => {
 
           return {
             value: c.id,
-            // Si está lleno, le metemos el tag "¡LLENO!" al texto para que Caro lo note al instante
-            label: `${c.tipo_curso} - ${c.titulo} - (${FormatCurrency(c.costo)}) - ${FormatDate(c.fecha_inicio)}  ${slotsLeft <= 0 ? "⚠️ ¡CUPO LLENO!" : ""}`,
-            slots_left: slotsLeft, // Guardamos la variable dentro de la opción
+            // Tag dinámico ultra claro si el cupo está lleno para que resalte a la vista
+            label: `${c.tipo_curso} - ${c.titulo} - (${FormatCurrency(c.costo)}) - ${c.fecha_inicio} ${
+              slotsLeft <= 0 ? "⚠️ ¡CUPO LLENO!" : ""
+            }`,
+            slots_left: slotsLeft,
           };
         });
 

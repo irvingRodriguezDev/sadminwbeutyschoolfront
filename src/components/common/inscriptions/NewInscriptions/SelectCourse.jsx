@@ -30,7 +30,7 @@ const SelectCourse = ({
         variant='subtitle2'
         sx={{ fontWeight: 700, mb: 1, color: "#2D2D2D" }}
       >
-        1. SELECCIÓN DE CURSO / MASTERCLASS
+        1. SELECCIÓN DE CURSO
       </Typography>
       <SelectCourses detectarCambiosCursos={detectarCambiosCursos} />
 
