@@ -24,6 +24,7 @@ import { useNavigate } from "react-router-dom";
 import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 import CurrencyExchangeIcon from "@mui/icons-material/CurrencyExchange";
+import SummarizeIcon from "@mui/icons-material/Summarize";
 const DrawerContent = ({
   LogoWapizima,
   handleDrawerToggle,
@@ -79,6 +80,12 @@ const DrawerContent = ({
       label: "Gastos",
       icon: <CurrencyExchangeIcon />,
       path: "/Gastos",
+      roles: ["school_admin"],
+    },
+    {
+      label: "Reportes",
+      icon: <SummarizeIcon />,
+      path: "/Reportes",
       roles: ["school_admin"],
     },
     {

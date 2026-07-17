@@ -14,6 +14,7 @@ import { StudentsProvider } from "./context/StudentsContext.jsx";
 import { FinanceProvider } from "./context/FinanzeContext.jsx";
 import { GoogleMapsProvider } from "./context/GoogleMapsProvider.jsx";
 import { ExpensesProvider } from "./context/ExpensesContext.jsx";
+import { ReportsProvider } from "./context/ReportsContext.jsx";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <ThemeProvider theme={premiumTheme}>
@@ -28,7 +29,9 @@ createRoot(document.getElementById("root")).render(
                     <InscriptionsProvider>
                       <FinanceProvider>
                         <ExpensesProvider>
-                          <App />
+                          <ReportsProvider>
+                            <App />
+                          </ReportsProvider>
                         </ExpensesProvider>
                       </FinanceProvider>
                     </InscriptionsProvider>
