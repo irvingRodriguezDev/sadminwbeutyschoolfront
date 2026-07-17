@@ -10,20 +10,11 @@ import { PointOfSale as PaymentIcon } from "@mui/icons-material";
 const PaymentInformation = ({ formData, setFormData }) => {
   return (
     <>
-      <Grid size={12}>
-        <Typography
-          variant='subtitle2'
-          sx={{ fontWeight: 700, mb: 1, color: "#2D2D2D" }}
-        >
-          3. REGISTRO DE PAGO EN CAJA RECEPCIÓN
-        </Typography>
-      </Grid>
-
       <Grid size={{ xs: 12, sm: 6 }}>
         <TextField
           fullWidth
           type='number'
-          label='Monto Recibido en este acto'
+          label='Monto Recibido'
           value={formData.payment_amount}
           onChange={(e) =>
             setFormData({ ...formData, payment_amount: e.target.value })

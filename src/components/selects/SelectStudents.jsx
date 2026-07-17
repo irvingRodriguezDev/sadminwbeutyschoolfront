@@ -26,7 +26,7 @@ const SelectStudents = (props) => {
       borderColor: state.isFocused ? "#E53888" : "#F9C4D9",
       boxShadow: state.isFocused ? "0 0 0 2px rgba(229, 56, 136, 0.3)" : "none",
       borderRadius: 8, // Bordes redondeados elegantes
-      minHeight: "40px", // Consistencia de altura con MUI
+      minHeight: "50px", // Consistencia de altura con MUI
       padding: "0 6px",
       cursor: "pointer",
       transition: "all .20s ease",

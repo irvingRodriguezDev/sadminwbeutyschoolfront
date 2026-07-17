@@ -55,10 +55,7 @@ function App() {
           <Route path='/crear-curso-nuevo' element={<AltaCursoStepper />} />
 
           <Route path='/inscripciones' element={<GestionInscripciones />} />
-          <Route
-            path='/crear-inscripcion/:schoolId'
-            element={<NewInscription />}
-          />
+          <Route path='/crear-inscripcion' element={<NewInscription />} />
 
           <Route path='/finanzas' element={<GestionFinanzas />} />
           <Route path='/Gastos' element={<GestionGastos />} />

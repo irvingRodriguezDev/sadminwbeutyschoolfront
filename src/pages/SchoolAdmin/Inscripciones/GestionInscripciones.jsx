@@ -60,10 +60,7 @@ const GestionInscripciones = () => {
           size={{ xs: 12, lg: 2 }}
           sx={{ display: "flex", justifyContent: "center" }}
         >
-          <Link
-            to={`/crear-inscripcion/${profile?.school_id}`}
-            style={{ textDecoration: "none" }}
-          >
+          <Link to={`/crear-inscripcion`} style={{ textDecoration: "none" }}>
             <Button
               variant='contained'
               size='large'

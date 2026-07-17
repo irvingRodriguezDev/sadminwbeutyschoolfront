@@ -19,9 +19,11 @@ import StudentData from "../../../components/common/inscriptions/NewInscriptions
 import PaymentInformation from "../../../components/common/inscriptions/NewInscriptions/PaymentInformation";
 import { alerts } from "../../../utils/alerts";
 import { FormatCurrency } from "../../../utils/FormatCurrency";
+import { useAuth } from "../../../context/AuthContext";
 
 const NewInscription = () => {
-  const { schoolId } = useParams();
+  const { profile } = useAuth();
+  const schoolId = profile?.school_id;
   const navigate = useNavigate();
 
   // 📥 Contextos del sistema
@@ -180,153 +182,156 @@ const NewInscription = () => {
   };
 
   return (
-    <Container maxWidth='md' sx={{ py: 4 }}>
+    <Grid container spacing={2}>
       {/* 🌸 ENCABEZADO PREMIUM DE LA PÁGINA */}
-      <Box sx={{ mb: 4 }}>
-        <Typography
-          variant='h4'
+      <Grid size={{ xs: 12 }}>
+        <Box sx={{ mb: 4 }}>
+          <Typography
+            variant='h5'
+            sx={{
+              fontFamily: "'Playfair Display', serif",
+              fontWeight: 800,
+              background: "linear-gradient(90deg, #E2208C 0%, #BE3C77 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              mb: 1,
+            }}
+          >
+            Registrar Inscripción Manual
+          </Typography>
+          <Typography
+            variant='caption'
+            sx={{ color: "#745E67", fontSize: "0.95rem" }}
+          >
+            Ingresa los datos para matricular y procesar el cobro en mostrador
+            de forma centralizada.
+          </Typography>
+        </Box>
+      </Grid>
+      <Grid size={12}>
+        {/* 📄 CONTENEDOR TIPO GLASSMORPHISM SUAVE */}
+        <Paper
+          component='form'
+          onSubmit={handleSubmit}
+          elevation={0}
           sx={{
-            fontFamily: "'Playfair Display', serif",
-            fontWeight: 900,
-            background: "linear-gradient(90deg, #E2208C 0%, #BE3C77 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            mb: 1,
+            p: { xs: 3, md: 4 },
+            borderRadius: "24px",
+            backgroundColor: "#fff",
+            border: "1px solid rgba(249, 196, 217, 0.4)",
+            boxShadow: "0px 15px 45px rgba(226, 32, 140, 0.03)",
           }}
         >
-          Registrar Inscripción Manual
-        </Typography>
-        <Typography
-          variant='body1'
-          sx={{ color: "#745E67", fontSize: "0.95rem" }}
-        >
-          Ingresa los datos para matricular y procesar el cobro en mostrador de
-          forma centralizada.
-        </Typography>
-      </Box>
+          {error && (
+            <Alert severity='error' sx={{ mb: 3, borderRadius: "12px" }}>
+              {error}
+            </Alert>
+          )}
 
-      {/* 📄 CONTENEDOR TIPO GLASSMORPHISM SUAVE */}
-      <Paper
-        component='form'
-        onSubmit={handleSubmit}
-        elevation={0}
-        sx={{
-          p: { xs: 3, md: 4 },
-          borderRadius: "24px",
-          backgroundColor: "#fff",
-          border: "1px solid rgba(249, 196, 217, 0.4)",
-          boxShadow: "0px 15px 45px rgba(226, 32, 140, 0.03)",
-        }}
-      >
-        {error && (
-          <Alert severity='error' sx={{ mb: 3, borderRadius: "12px" }}>
-            {error}
-          </Alert>
-        )}
+          <Grid container spacing={2}>
+            {/* SECCIÓN 1: Selección del Curso */}
+            <Grid size={{ xs: 12, sm: 12, md: 4, lg: 4 }}>
+              <Typography
+                variant='subtitle1'
+                sx={{ fontWeight: 800, color: "#BE3C77", mb: 0.5 }}
+              >
+                1. Selección de Curso y Horarios
+              </Typography>
 
-        <Grid container spacing={3}>
-          {/* SECCIÓN 1: Selección del Curso */}
-          <Grid size={12}>
-            <Typography
-              variant='subtitle1'
-              sx={{ fontWeight: 800, color: "#BE3C77", mb: 0.5 }}
-            >
-              1. Selección de Curso y Horarios
-            </Typography>
+              <SelectCourse
+                handleCourseChange={handleCourseChange}
+                formData={formData}
+                loadingCourses={loadingCourses}
+                setSelectedCourse={setSelectedCourse}
+                cursos={cursos}
+                selectedCourse={selectedCourse}
+                availability={availability}
+              />
+            </Grid>
+
+            {/* SECCIÓN 2: Datos del Alumno */}
+            <Grid size={{ xs: 12, sm: 12, md: 8, lg: 8 }}>
+              <Typography
+                variant='subtitle1'
+                sx={{ fontWeight: 800, color: "#BE3C77", mb: 0.5 }}
+              >
+                2. Información de la Alumna
+              </Typography>
+
+              <StudentData
+                formData={formData}
+                setFormData={setFormData}
+                isNewStudent={isNewStudent}
+                setIsNewStudent={setIsNewStudent}
+                schoolId={schoolId}
+                setStudentId={setStudentId}
+              />
+            </Grid>
+
+            {/* SECCIÓN 3: Gestión de Caja */}
+            <Grid size={12}>
+              <Divider sx={{ my: 1, borderColor: "rgba(240, 98, 146, 0.1)" }} />
+              <Typography
+                variant='subtitle1'
+                sx={{ fontWeight: 800, color: "#BE3C77", mt: 1, mb: 0.5 }}
+              >
+                3. Gestión de Caja y Finanzas
+              </Typography>
+            </Grid>
+
+            <PaymentInformation formData={formData} setFormData={setFormData} />
           </Grid>
 
-          <SelectCourse
-            handleCourseChange={handleCourseChange}
-            formData={formData}
-            loadingCourses={loadingCourses}
-            setSelectedCourse={setSelectedCourse}
-            cursos={cursos}
-            selectedCourse={selectedCourse}
-            availability={availability}
-          />
-
-          {/* SECCIÓN 2: Datos del Alumno */}
-          <Grid size={12}>
-            <Divider sx={{ my: 1, borderColor: "rgba(240, 98, 146, 0.1)" }} />
-            <Typography
-              variant='subtitle1'
-              sx={{ fontWeight: 800, color: "#BE3C77", mt: 1, mb: 0.5 }}
+          {/* 🔘 BOTONERA DE ACCIÓN INFERIOR */}
+          <Box sx={{ mt: 4 }}>
+            <Divider sx={{ mb: 3, borderColor: "rgba(240, 98, 146, 0.1)" }} />
+            <Stack
+              direction='row'
+              spacing={2}
+              sx={{ justifyContent: "flex-end" }}
             >
-              2. Información de la Alumna
-            </Typography>
-          </Grid>
-
-          <StudentData
-            formData={formData}
-            setFormData={setFormData}
-            isNewStudent={isNewStudent}
-            setIsNewStudent={setIsNewStudent}
-            schoolId={schoolId}
-            setStudentId={setStudentId}
-          />
-
-          {/* SECCIÓN 3: Gestión de Caja */}
-          <Grid size={12}>
-            <Divider sx={{ my: 1, borderColor: "rgba(240, 98, 146, 0.1)" }} />
-            <Typography
-              variant='subtitle1'
-              sx={{ fontWeight: 800, color: "#BE3C77", mt: 1, mb: 0.5 }}
-            >
-              3. Gestión de Caja y Finanzas
-            </Typography>
-          </Grid>
-
-          <PaymentInformation formData={formData} setFormData={setFormData} />
-        </Grid>
-
-        {/* 🔘 BOTONERA DE ACCIÓN INFERIOR */}
-        <Box sx={{ mt: 4 }}>
-          <Divider sx={{ mb: 3, borderColor: "rgba(240, 98, 146, 0.1)" }} />
-          <Stack
-            direction='row'
-            spacing={2}
-            sx={{ justifyContent: "flex-end" }}
-          >
-            <Button
-              onClick={handleClose}
-              disabled={submitting}
-              sx={{
-                color: "#745E67",
-                fontWeight: 700,
-                px: 3,
-                textTransform: "none",
-              }}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type='submit'
-              variant='contained'
-              disabled={
-                submitting || (selectedCourse && availability.slots_left <= 0)
-              }
-              sx={{
-                background: "linear-gradient(90deg, #E2208C 0%, #F06292 100%)",
-                borderRadius: "14px",
-                px: 5,
-                py: 1.6,
-                fontWeight: 700,
-                textTransform: "none",
-                fontSize: "0.95rem",
-                boxShadow: "0 4px 14px rgba(226, 32, 140, 0.25)",
-                "&:hover": {
+              <Button
+                onClick={handleClose}
+                disabled={submitting}
+                sx={{
+                  color: "#745E67",
+                  fontWeight: 700,
+                  px: 3,
+                  textTransform: "none",
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type='submit'
+                variant='contained'
+                disabled={
+                  submitting || (selectedCourse && availability.slots_left <= 0)
+                }
+                sx={{
                   background:
-                    "linear-gradient(90deg, #BE3C77 0%, #E2208C 100%)",
-                  boxShadow: "0 6px 20px rgba(226, 32, 140, 0.35)",
-                },
-              }}
-            >
-              {submitting ? "Procesando Alta..." : "Confirmar e Inscribir"}
-            </Button>
-          </Stack>
-        </Box>
-      </Paper>
-    </Container>
+                    "linear-gradient(90deg, #E2208C 0%, #F06292 100%)",
+                  borderRadius: "14px",
+                  px: 5,
+                  py: 1.6,
+                  fontWeight: 700,
+                  textTransform: "none",
+                  fontSize: "0.95rem",
+                  boxShadow: "0 4px 14px rgba(226, 32, 140, 0.25)",
+                  "&:hover": {
+                    background:
+                      "linear-gradient(90deg, #BE3C77 0%, #E2208C 100%)",
+                    boxShadow: "0 6px 20px rgba(226, 32, 140, 0.35)",
+                  },
+                }}
+              >
+                {submitting ? "Procesando Alta..." : "Confirmar e Inscribir"}
+              </Button>
+            </Stack>
+          </Box>
+        </Paper>
+      </Grid>
+    </Grid>
   );
 };
 

@@ -26,12 +26,6 @@ const SelectCourse = ({
 
   return (
     <Grid size={12}>
-      <Typography
-        variant='subtitle2'
-        sx={{ fontWeight: 700, mb: 1, color: "#2D2D2D" }}
-      >
-        1. SELECCIÓN DE CURSO
-      </Typography>
       <SelectCourses detectarCambiosCursos={detectarCambiosCursos} />
 
       {/* Banner Informativo del Cupo del Salón asignado */}

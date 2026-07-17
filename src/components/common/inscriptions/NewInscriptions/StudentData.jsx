@@ -18,37 +18,39 @@ const StudentData = ({ setStudentId, setFormData, schoolId }) => {
   };
   return (
     <>
-      <Grid size={12}>
-        <Typography
-          variant='subtitle2'
-          sx={{ fontWeight: 700, mb: 1, color: "#2D2D2D" }}
-        >
-          2. DATOS DEL ESTUDIANTE
-        </Typography>
-      </Grid>
-
       {/* 🔍 BUSCADOR INTELIGENTE */}
       <Grid size={12}>
-        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+        <Grid
+          container
+          spacing={2}
+          sx={{ display: "flex", alignItems: "center" }}
+        >
           {/* 🚀 El buscador de react-select */}
-          <Box sx={{ flexGrow: 1 }}>
-            <SelectStudents detectarCambiosStudent={detectarCambiosStudent} />
-          </Box>
+          <Grid size={{ xs: 12, sm: 8, md: 8, lg: 8 }}>
+            <Box sx={{ flexGrow: 1 }}>
+              <SelectStudents detectarCambiosStudent={detectarCambiosStudent} />
+            </Box>
+          </Grid>
 
           {/* ➕ Botón para abrir el modal de nueva alumna */}
-          <Button
-            variant='contained'
-            onClick={() => setOpenStudentModal(true)}
-            sx={{
-              backgroundColor: "primary",
-              color: "#fff",
-              px: 1,
-              "&:hover": { backgroundColor: "primaryDark" },
-            }}
-          >
-            + Nueva
-          </Button>
-        </Box>
+          <Grid size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
+            <Button
+              variant='contained'
+              onClick={() => setOpenStudentModal(true)}
+              sx={{
+                width: "100%",
+                backgroundColor: "primary",
+                color: "#fff",
+                borderRadius: "8px",
+                fontSize: "20px",
+                px: 1,
+                "&:hover": { backgroundColor: "primaryDark" },
+              }}
+            >
+              + Crear
+            </Button>
+          </Grid>
+        </Grid>
         <AddNewStudentModal
           open={openStudentModal}
           setOpen={setOpenStudentModal}
