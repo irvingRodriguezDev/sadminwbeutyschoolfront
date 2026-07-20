@@ -65,7 +65,7 @@ const GestionReportes = () => {
   const selectedTeacherName = currentCourse?.maestro || "No asignado";
 
   return (
-    <Grid container spacing={2} sx={{ p: 4 }}>
+    <Grid container spacing={2}>
       {/* Cabecera Principal */}
       <Grid size={12}>
         <Box sx={{ mb: 4 }}>

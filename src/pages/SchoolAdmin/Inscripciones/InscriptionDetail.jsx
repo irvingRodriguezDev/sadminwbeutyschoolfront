@@ -57,10 +57,11 @@ const InscriptionDetail = ({ open, onClose, enrollmentData }) => {
       open={open}
       onClose={onClose}
       sx={{
-        width: { xs: "100%", sm: 450 },
+        width: { xs: "100%", sm: 350 },
         borderTopLeftRadius: "32px",
         borderBottomLeftRadius: "32px",
         overflow: "hidden",
+        zIndex: 9999,
       }}
     >
       {/* HEADER PREMIUM */}
@@ -122,15 +123,15 @@ const InscriptionDetail = ({ open, onClose, enrollmentData }) => {
           COLORS={COLORS}
         />
 
-        <Divider sx={{ borderStyle: "dashed" }} />
+        {/* <Divider sx={{ borderStyle: "dashed" }} /> */}
 
         {/* 4. SECCIÓN: Pase de Acceso (QR) */}
-        <AccessQr
+        {/* <AccessQr
           enrollmentData={enrollmentData}
           isLiquidado={isLiquidado}
           restante={restante}
           COLORS={COLORS}
-        />
+        /> */}
         <Divider sx={{ borderStyle: "dashed" }} />
 
         {/* 5. SECCIÓN: Historial Cronológico de Pagos */}

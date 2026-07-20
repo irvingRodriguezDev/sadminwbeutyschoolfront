@@ -10,6 +10,7 @@ import {
   CardContent,
   TextField,
   MenuItem,
+  TablePagination,
 } from "@mui/material";
 import { Add, TrendingDown, ReceiptLong } from "@mui/icons-material";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
@@ -21,6 +22,7 @@ import AddExpenseModal from "./AddExpenseModal";
 import { useAuth } from "../../../context/AuthContext";
 import { useExpenses } from "../../../context/ExpensesContext";
 import TableExpenses from "./TableExpenses";
+import ExpenseMobileCard from "./ExpenseMobileCard";
 const CATEGORIES = [
   "Todos",
   "Renta",
@@ -141,7 +143,7 @@ const GestionGastos = () => {
       <Kpis />
 
       {/* SECCIÓN DE TABLA & FILTROS */}
-      <Grid size={12}>
+      <Grid size={12} sx={{ display: { xs: "none", sm: "block" } }}>
         <TableExpenses
           filteredExpenses={filteredExpenses}
           CATEGORIES={CATEGORIES}
@@ -153,6 +155,51 @@ const GestionGastos = () => {
           page={page}
           rowsPerPage={rowsPerPage}
           handleCategoryChange={handleCategoryChange}
+        />
+      </Grid>
+      {/* ================= VISTA MÓVIL (CARDS) ================= */}
+      <Grid size={12} sx={{ display: { xs: "block", md: "none" } }}>
+        <Typography sx={{ textAlign: "center" }}>
+          Historial de Egresos
+        </Typography>
+        {/* Mapeamos exactamente tu misma prop de datos paginados */}
+        {paginatedExpenses.length > 0 ? (
+          paginatedExpenses.map((gasto) => (
+            <Grid sx={12}>
+              <ExpenseMobileCard
+                key={gasto.id}
+                gasto={gasto}
+                CATEGORIES={CATEGORIES}
+              />
+            </Grid>
+          ))
+        ) : (
+          <Typography
+            variant='body2'
+            color='textSecondary'
+            align='center'
+            sx={{ py: 4 }}
+          >
+            No se encontraron gastos en este bloque.
+          </Typography>
+        )}
+
+        {/* Reutilizamos el mismo paginador de MUI abajo de las tarjetas de forma limpia */}
+        <TablePagination
+          component='div'
+          count={filteredExpenses.length}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          labelRowsPerPage='Filas:'
+          rowsPerPageOptions={[5, 10, 25]}
+          sx={{
+            "& .MuiTablePagination-toolbar": {
+              justifyContent: "center",
+              px: 0,
+            },
+          }}
         />
       </Grid>
       <AddExpenseModal

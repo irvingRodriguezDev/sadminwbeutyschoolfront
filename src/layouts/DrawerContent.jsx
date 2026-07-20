@@ -88,12 +88,12 @@ const DrawerContent = ({
       path: "/Reportes",
       roles: ["school_admin"],
     },
-    {
-      label: "Scanner",
-      icon: <QrCodeScannerIcon />,
-      path: "/scanner-asistencia",
-      roles: ["school_admin"],
-    },
+    // {
+    //   label: "Scanner",
+    //   icon: <QrCodeScannerIcon />,
+    //   path: "/scanner-asistencia",
+    //   roles: ["school_admin"],
+    // },
   ];
 
   const filteredMenuItems = menuItems.filter((item) =>
