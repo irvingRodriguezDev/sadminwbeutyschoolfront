@@ -6,17 +6,17 @@ import {
   Typography,
   Paper,
   Grid,
-  InputAdornment,
   Divider,
   Alert,
 } from "@mui/material";
 import { alerts } from "../../utils/alerts";
-import { School, Business, Email, MyLocation, Send } from "@mui/icons-material";
+import { Business, Email, Send } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { escuelasService } from "../../api/schools";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { useSuperAdmin } from "../../context/SuperAdminContext";
+
 const FormNuevaEscuela = ({ onExito }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -26,13 +26,18 @@ const FormNuevaEscuela = ({ onExito }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const formData = new FormData(e.target);
-    const datos = {
-      name: formData.get("nombre"),
-      emailAdmin: formData.get("emailAdmin"),
-    };
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get("nombre")?.toString().trim();
+    const emailAdmin = formData.get("emailAdmin")?.toString().trim();
 
-    // 1. Mostrar loading inmediato con SweetAlert2
+    if (!name || !emailAdmin) {
+      alerts.error("Error", "Ambos campos son obligatorios.");
+      return;
+    }
+
+    const datos = { name, emailAdmin };
+    console.log(datos, "los datos que se supone se envian");
+
     Swal.fire({
       title: "Creando Academia...",
       text: "Estamos configurando la escuela y enviando la invitación al administrador.",
@@ -40,28 +45,32 @@ const FormNuevaEscuela = ({ onExito }) => {
       allowEscapeKey: false,
       showConfirmButton: false,
       didOpen: () => {
-        Swal.showLoading(); // Esto pone el spinner premium de Swal
+        Swal.showLoading();
       },
     });
 
     try {
-      // 2. Ejecutar la llamada al servicio
-      await escuelasService.registrarEscuelaCompleta(datos, datos.emailAdmin);
+      setLoading(true);
+      await escuelasService.registrarEscuelaCompleta(datos);
 
-      // 3. Cambiar el loading por éxito
       alerts.success(
         "¡Registro Exitoso!",
         `La escuela "${datos.name}" ha sido creada. Se envió un correo a ${datos.emailAdmin}.`,
       );
+
       if (onExito) onExito();
       await refreshGlobal();
-      // 4. Redirigir (El usuario verá la confirmación de éxito antes de irse)
+
       setTimeout(() => {
         navigate("/escuelas");
       }, 2500);
     } catch (err) {
-      // 5. En caso de error, cerramos el loading y mostramos el error
-      alerts.error("Error al registrar", err.message);
+      alerts.error(
+        "Error al registrar",
+        err.message || "Ocurrió un error inesperado.",
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -120,12 +129,14 @@ const FormNuevaEscuela = ({ onExito }) => {
                 type='email'
                 helperText='Se enviará una invitación para configurar su contraseña.'
                 slotProps={{
-                  startAdornment: <Email color='primary' sx={{ mr: 1 }} />,
+                  input: {
+                    startAdornment: <Email color='primary' sx={{ mr: 1 }} />,
+                  },
                 }}
               />
             </Grid>
 
-            <Grid size={12} sx={{ mt: 2 }}>
+            <Grid item xs={12} sx={{ mt: 2 }}>
               <Button
                 fullWidth
                 size='large'

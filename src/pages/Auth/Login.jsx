@@ -26,7 +26,6 @@ const Login = () => {
   const [token, setToken] = useState(null);
   const turnstileRef = useRef(null);
 
-  // Helper centralizado para resetear el captcha de forma segura
   const resetCaptcha = () => {
     setToken(null);
     if (turnstileRef.current) {
@@ -38,31 +37,33 @@ const Login = () => {
     e.preventDefault();
 
     if (!token) {
-      alerts.error(
-        "Por favor, espera a que se complete la verificación de seguridad.",
-      );
-      // Intentamos forzar un render del widget si el usuario da click y no hay token activo
-      resetCaptcha();
+      alerts.error("Por favor, completa la verificación de seguridad.");
       return;
     }
 
     setLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-      options: {
-        captchaToken: token,
-      },
-    });
 
-    if (error) {
-      alerts.error("¡Cuidado!", error.message);
-      // 🚨 IMPORTANTE: Reseteamos siempre para que el usuario pueda intentar de nuevo
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+        options: {
+          captchaToken: token,
+        },
+      });
+
+      if (error) {
+        alerts.error("¡Cuidado!", error.message);
+        resetCaptcha(); // Reinicia el widget limpiamente para el próximo intento
+      } else if (data.user) {
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      alerts.error("Error", "Ocurrió un error inesperado al iniciar sesión.");
       resetCaptcha();
-    } else if (data.user) {
-      navigate("/dashboard");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -88,7 +89,7 @@ const Login = () => {
               background: "rgba(255, 255, 255, 0.4)",
               backdropFilter: "blur(15px)",
               border: "1px solid rgba(255, 255, 255, 0.5)",
-              borderRadius: 4, // Un poco más redondeado para el look premium
+              borderRadius: 4,
             }}
           >
             <Typography
@@ -168,42 +169,22 @@ const Login = () => {
                 </Link>
               </Box>
 
-              {/* 🛡️ CONTENEDOR DE TURNSTILE PREMIUM */}
+              {/* 🛡️ CONTENEDOR TURNSTILE */}
               <Box
                 sx={{
                   my: 3,
                   display: "flex",
                   justifyContent: "center",
                   width: "100%",
-                  minHeight: "70px", // Previene saltos de layout bruscos en carga
-                  // ✨ Estilo visual para integrarlo limpiamente a la app
-                  "& .cf-turnstile": {
-                    borderRadius: "16px !important",
-                    overflow: "hidden",
-                    boxShadow: "0px 8px 24px rgba(240, 98, 146, 0.12)",
-                    border: "1px solid rgba(240, 98, 146, 0.15)",
-                  },
-                  // 🚨 Evitamos filtros extremos sobre el iframe que confunden al bot de Cloudflare
-                  "& iframe": {
-                    opacity: 0.95,
-                    transition: "opacity 0.3s ease",
-                  },
+                  minHeight: "65px",
                 }}
               >
                 <Turnstile
                   ref={turnstileRef}
                   siteKey={cloudflareKey}
                   onSuccess={(token) => setToken(token)}
-                  onExpire={() => {
-                    // Si expira por estar mucho tiempo en pantalla, se autoregenera solo
-                    resetCaptcha();
-                  }}
-                  onError={() => {
-                    alerts.error(
-                      "Error de verificación. Reintentando de forma automática...",
-                    );
-                    resetCaptcha();
-                  }}
+                  onExpire={() => resetCaptcha()}
+                  onError={() => resetCaptcha()}
                   options={{
                     theme: "light",
                     size: "normal",
@@ -216,7 +197,7 @@ const Login = () => {
                 size='large'
                 type='submit'
                 variant='contained'
-                disabled={loading}
+                disabled={loading || !token} // Previene clics antes de validar Turnstile
                 sx={{
                   mt: 1,
                   py: 1.5,
@@ -228,6 +209,9 @@ const Login = () => {
                   "&:hover": {
                     background:
                       "linear-gradient(135deg, #cc2e75 0%, #e0568c 100%)",
+                  },
+                  "&:disabled": {
+                    background: "#ccc",
                   },
                 }}
               >

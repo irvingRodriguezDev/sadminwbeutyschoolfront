@@ -137,7 +137,7 @@ const NewInscription = () => {
     const studentData = { studentId };
 
     const inscriptionPayload = {
-      course_id: formData.course_id,
+      course_id: selectedCourse.id,
       tipo_curso: selectedCourse.tipo_curso,
       status: initialStatus,
       total_amount: totalAmount,
