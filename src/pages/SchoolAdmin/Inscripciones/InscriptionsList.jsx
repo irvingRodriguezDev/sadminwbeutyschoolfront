@@ -95,11 +95,10 @@ const InscriptionCardMobile = ({ row, onOpenPayment, onOpenDetail }) => {
       {/* Cabecera: Info Alumna y Estatus */}
       <Stack
         direction='row'
-        justifyContent='space-between'
-        alignItems='flex-start'
         mb={2}
+        sx={{ alignItems: "flex-start", justifyContent: "space-between" }}
       >
-        <Stack direction='row' spacing={1.5} alignItems='center'>
+        <Stack direction='row' spacing={1.5} sx={{ alignItems: "center" }}>
           <Avatar
             sx={{
               bgcolor: COLORS.primary,
@@ -166,7 +165,11 @@ const InscriptionCardMobile = ({ row, onOpenPayment, onOpenDetail }) => {
 
       {/* Progreso de Pago */}
       <Box sx={{ bgcolor: "#FAFAFA", p: 1.5, borderRadius: "12px", mb: 2 }}>
-        <Stack direction='row' justifyContent='space-between' mb={0.5}>
+        <Stack
+          direction='row'
+          mb={0.5}
+          sx={{ justifyContent: "space-between" }}
+        >
           <Typography
             variant='caption'
             sx={{ fontWeight: 700, color: COLORS.accent }}
@@ -211,7 +214,7 @@ const InscriptionCardMobile = ({ row, onOpenPayment, onOpenDetail }) => {
       </Box>
 
       {/* Botones de Acción Mobile */}
-      <Stack direction='row' spacing={1} justifyContent='flex-end'>
+      <Stack direction='row' spacing={1} sx={{ justifyContent: "flex-end" }}>
         <IconButton
           size='small'
           onClick={() => onOpenDetail(row)}

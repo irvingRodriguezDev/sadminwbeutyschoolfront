@@ -4,34 +4,27 @@ import {
   Stepper,
   Step,
   StepLabel,
-  Button,
-  Typography,
   Paper,
   CircularProgress,
-  Divider,
 } from "@mui/material";
 
-import { useOutletContext } from "react-router-dom"; // 🌟 IMPORTANTE: Para comunicar con el layout padre
+import { useOutletContext } from "react-router-dom";
 import { alerts } from "../../utils/alerts";
 import { supabase } from "../../config/supabaseClient";
-import LocationPicker from "./LocationPiker";
 import StepperOne from "./Stepper/StepperOne";
 import StepperTwo from "./Stepper/StepperTwo";
 import StepperThree from "./Stepper/StepperThree";
 import LoadingInitial from "./Stepper/LoadingInitial";
 import ButtonActions from "./Stepper/ButtonActions";
-const steps = [
-  "Identidad de la Academia",
-  "Configuración de Pagos",
-  "Finalizar",
-];
 
 const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
-  // 🌟 Extraemos la función inyectada por el Outlet de tu DashboardLayout
   const outletContext = useOutletContext();
   const handleCompleteOnboarding = outletContext?.handleCompleteOnboarding;
 
-  // Intentamos recuperar el paso guardado por si Stripe recarga la app completa
+  // 1. Estado para almacenar si es franquicia y si está cargando la info inicial
+  const [isFranchise, setIsFranchise] = useState(false);
+  const [loadingSchoolData, setLoadingSchoolData] = useState(true);
+
   const [activeStep, setActiveStep] = useState(() => {
     const savedStep = localStorage.getItem("onboarding_step");
     return savedStep ? parseInt(savedStep, 10) : 0;
@@ -43,16 +36,17 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isPreparando, setIsPreparando] = useState(false);
+
   const [phoneNumber, setPhoneNumber] = useState(() => {
-    return localStorage.getItem("phone") || ""; // Aseguramos que sea un string vacío por defecto en vez de null
+    return localStorage.getItem("phone") || "";
   });
+
   const handleChangePhone = (phone) => {
-    // Opcional: Si quieres guardar solo números desde el input
     const cleanPhone = phone.replace(/\D/g, "");
     localStorage.setItem("phone", cleanPhone);
     setPhoneNumber(cleanPhone);
   };
-  // Estado temporal de Stripe en memoria local del asistente
+
   const [stripeConnected, setStripeConnected] = useState(() => {
     return localStorage.getItem("stripe_connected_local") === "true";
   });
@@ -69,7 +63,38 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
     return { address: "", lat: null, lng: null };
   });
 
-  // Guardar el paso actual en almacenamiento local para mitigar la redirección de Stripe
+  // 2. Cargar los datos de la escuela (is_franchise) al montar el componente
+  useEffect(() => {
+    const fetchSchoolDetails = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("schools")
+          .select("is_franchise")
+          .eq("id", schoolId)
+          .single();
+
+        if (error) throw error;
+        if (data) {
+          setIsFranchise(!!data.is_franchise);
+        }
+      } catch (error) {
+        console.error("Error al consultar datos de la escuela:", error);
+      } finally {
+        setLoadingSchoolData(false);
+      }
+    };
+
+    if (schoolId) {
+      fetchSchoolDetails();
+    }
+  }, [schoolId]);
+
+  // 3. Definición dinámica de los pasos
+  const steps = isFranchise
+    ? ["Identidad de la Academia", "Configuración de Pagos", "Finalizar"]
+    : ["Identidad de la Academia", "Finalizar"];
+
+  // Guardar el paso actual en localStorage
   useEffect(() => {
     localStorage.setItem("onboarding_step", activeStep.toString());
   }, [activeStep]);
@@ -80,7 +105,7 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
     }
   }, [locationData]);
 
-  // Detectar regreso de Stripe
+  // Detectar regreso de Stripe (Solo aplicable si es Franquicia)
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const success = queryParams.get("success");
@@ -91,9 +116,8 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
       localStorage.setItem("stripe_connected_local", "true");
       localStorage.setItem("temp_stripe_account_id", accountId);
 
-      setActiveStep(1); // Lo mantenemos firmemente en el paso de pagos
+      setActiveStep(1); // Mantiene en el paso de Stripe
 
-      // Limpiamos la URL de forma limpia
       window.history.replaceState({}, document.title, window.location.pathname);
 
       alerts.success(
@@ -142,7 +166,6 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
         data: { user },
       } = await supabase.auth.getUser();
 
-      // Antes de irnos a Stripe, guardamos que estamos en el paso 1
       localStorage.setItem("needsOnBoarding", "true");
 
       const { data, error } = await supabase.functions.invoke(
@@ -161,8 +184,9 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
     }
   };
 
+  // 4. Lógica de avance ajustada al flujo dinámico
   const handleNext = async () => {
-    // 🌟 CORRECCIÓN: Ahora validamos logo y dirección obligatoria
+    // Validaciones del PASO 0 (Identidad)
     if (activeStep === 0) {
       if (!logoUrl) {
         alerts.error(
@@ -187,11 +211,13 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
       }
     }
 
-    if (activeStep === 1 && !stripeConnected) {
+    // Validación del PASO 1 solo si ES FRANQUICIA (Stripe)
+    if (isFranchise && activeStep === 1 && !stripeConnected) {
       alerts.error("Paso requerido", "Debes vincular tu cuenta de Stripe.");
       return;
     }
 
+    // Si llegamos al último paso del arreglo, finalizamos
     if (activeStep === steps.length - 1) {
       await finalizarConfiguracion();
     } else {
@@ -208,12 +234,12 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
         address: locationData.address,
         location: `POINT(${locationData.lng} ${locationData.lat})`,
         logo_url: logoUrl,
-        stripe_account_id: tempAccountId || null,
-        stripe_onboarding_complete: tempAccountId ? true : false,
+        // Si no es franquicia, no guardamos cuenta conectada
+        stripe_account_id: isFranchise ? tempAccountId || null : null,
+        stripe_onboarding_complete: isFranchise ? !!tempAccountId : true,
         updated_at: new Date(),
-        number_phone: phoneNumber || null, // Guardamos el número de teléfono si está disponible
+        number_phone: phoneNumber || null,
       };
-      console.log(updates);
 
       const { error } = await supabase
         .from("schools")
@@ -222,11 +248,9 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
 
       if (error) throw error;
 
-      // 🚀 PASO 1: Activamos la hermosa pantalla de transición
       setIsSaving(false);
       setIsPreparando(true);
 
-      // 🧹 Limpieza de memoria local habitual
       localStorage.setItem("needsOnBoarding", "false");
       localStorage.removeItem("locationData");
       localStorage.removeItem("logourl");
@@ -235,9 +259,7 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
       localStorage.removeItem("temp_stripe_account_id");
       localStorage.removeItem("phone");
 
-      // ⏳ PASO 2: Le damos 3 segundos de transición para deleite visual
       setTimeout(() => {
-        // Desmonta el onboarding de forma reactiva y abre el menú lateral
         if (handleCompleteOnboarding) {
           handleCompleteOnboarding();
         }
@@ -248,12 +270,19 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
       alerts.error("Error", error.message);
     }
   };
-  // 🌟 Si está preparando la experiencia, mostramos esta vista a pantalla completa
+
+  if (loadingSchoolData) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   if (isPreparando) {
     return <LoadingInitial />;
   }
 
-  // Abajo continúa tu "return ( <Box sx={{ width: "100%", mt: 2 }}> ..." original intacto
   return (
     <Box sx={{ width: "100%", mt: 2 }}>
       <Stepper activeStep={activeStep} alternativeLabel>
@@ -279,7 +308,7 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
           gap: 3,
         }}
       >
-        {/* PASO 0: IDENTIDAD */}
+        {/* PASO 0: IDENTIDAD (Siempre se muestra) */}
         {activeStep === 0 && (
           <StepperOne
             logoUrl={logoUrl}
@@ -292,8 +321,8 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
           />
         )}
 
-        {/* PASO 1: STRIPE */}
-        {activeStep === 1 && (
+        {/* PASO STRIPE: Solo si es Franquicia y estamos en el paso 1 */}
+        {isFranchise && activeStep === 1 && (
           <StepperTwo
             stripeConnected={stripeConnected}
             isConnecting={isConnecting}
@@ -301,8 +330,9 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
           />
         )}
 
-        {/* PASO 2: CONFIRMACIÓN */}
-        {activeStep === 2 && <StepperThree />}
+        {/* PASO FINALIZAR: Se muestra en el último paso (Paso 1 para escuela propia, Paso 2 para franquicia) */}
+        {((isFranchise && activeStep === 2) ||
+          (!isFranchise && activeStep === 1)) && <StepperThree />}
 
         {/* BOTONES DE CONTROL */}
         <ButtonActions
@@ -310,7 +340,7 @@ const OnboardingStepper = ({ schoolId, schoolName, onComplete }) => {
           isSubiendoLogo={isSubiendoLogo}
           activeStep={activeStep}
           isSaving={isSaving}
-          stripeConnected={stripeConnected}
+          stripeConnected={isFranchise ? stripeConnected : true}
           handleNext={handleNext}
           setActiveStep={setActiveStep}
         />

@@ -59,9 +59,8 @@ const IncomingCardMobile = ({ row, COLORS }) => {
       {/* Fila Superior: Nombre de Alumna y Estatus/Método */}
       <Stack
         direction='row'
-        justifyContent='space-between'
-        alignItems='flex-start'
         mb={1.5}
+        sx={{ justifyContent: "space-between", alignItems: "flex-start" }}
       >
         <Box sx={{ minWidth: 0, pr: 1 }}>
           <Typography
@@ -73,8 +72,7 @@ const IncomingCardMobile = ({ row, COLORS }) => {
           <Stack
             direction='row'
             spacing={0.5}
-            alignItems='center'
-            sx={{ color: "text.secondary", mt: 0.5 }}
+            sx={{ color: "text.secondary", mt: 0.5, alignItems: "center" }}
           >
             <TimeIcon sx={{ fontSize: 13 }} />
             <Typography variant='caption'>
@@ -111,11 +109,11 @@ const IncomingCardMobile = ({ row, COLORS }) => {
       {/* Fila Inferior: Notas y Monto Total */}
       <Stack
         direction='row'
-        justifyContent='space-between'
-        alignItems='center'
         sx={{
           pt: 1.5,
           borderTop: "1px dashed rgba(0,0,0,0.05)",
+          alignItems: "center",
+          justifyContent: "space-between",
         }}
       >
         {/* Notas truncadas en mobile si son muy largas */}

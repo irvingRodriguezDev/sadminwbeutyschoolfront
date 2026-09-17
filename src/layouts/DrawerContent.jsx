@@ -151,7 +151,7 @@ const DrawerContent = ({
         {filteredMenuItems.map((item) => (
           <StyledNavItem
             key={item.label}
-            active={location.pathname === item.path}
+            active={location.pathname === item.path ? true : false}
             onClick={() => {
               navigate(item.path);
               if (isMobile) setOpen(false);

@@ -67,4 +67,26 @@ export const alerts = {
       timer: 2500,
     });
   },
+  // Loader de carga con spinner rosa integrado directamente
+  loading: (
+    title = "Subiendo Contenido",
+    text = "Espera un momento, no cierres la página...",
+  ) => {
+    return MySwal.fire({
+      ...premiumConfig,
+      title,
+      text,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+        // Inyección directa del color rosa en el spinner sin requerir CSS externo
+        const loader = Swal.getPopup()?.querySelector(".swal2-loader");
+        if (loader) {
+          loader.style.borderColor = "#f06292 transparent #f06292 transparent";
+        }
+      },
+    });
+  },
 };

@@ -20,7 +20,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     );
 
-    const { name, emailAdmin } = await req.json();
+    const { name, emailAdmin, isFranchise } = await req.json();
 
     if (!emailAdmin || !name) {
       throw new Error("El nombre de la escuela y el email del admin son obligatorios.");
@@ -33,6 +33,7 @@ serve(async (req) => {
         {
           name,
           slug: name.toLowerCase().trim().replace(/\s+/g, "-"),
+          is_franchise: isFranchise || false,
         },
       ])
       .select()

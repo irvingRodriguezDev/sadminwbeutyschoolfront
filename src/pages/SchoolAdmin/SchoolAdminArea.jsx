@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../config/supabaseClient";
 import OnboardingStepper from "./OnBoardingStepper";
-import SchoolAdminDashboard from "./SchoolAdminDashboard"; // Tu vista principal
+import SchoolAdminDashboard from "./SchoolAdminDashboard";
 import LoadingScreen from "../../components/common/LoadingScreen";
 import { Box, Typography } from "@mui/material";
 
@@ -9,11 +9,10 @@ const SchoolAdminArea = ({ userProfile }) => {
   const [loading, setLoading] = useState(true);
   const [needsOnboarding, setNeedsOnboarding] = useState(true);
   const [schoolData, setSchoolData] = useState(null);
-  localStorage.setItem("needsOnBoarding", needsOnboarding);
+
   useEffect(() => {
     const checkSchoolStatus = async () => {
       try {
-        // Consultamos la escuela asociada al perfil del usuario
         const { data: school, error } = await supabase
           .from("schools")
           .select("*")
@@ -24,13 +23,36 @@ const SchoolAdminArea = ({ userProfile }) => {
 
         setSchoolData(school);
 
-        // Condición clave: Si no hay Stripe Key, necesita onboarding
-        if (school.stripe_account_id && school.stripe_onboarding_complete) {
-          setNeedsOnboarding(false);
-          localStorage.setItem("needsOnBoarding", false);
+        if (school) {
+          // 1. Verificación de Datos Básicos (Aplica para ambos tipos de escuela)
+          const tieneDatosBasicos = Boolean(school.address && school.logo_url);
+
+          let requiereCompletarOnboarding = false;
+
+          // 2. Evaluación según el Modelo de Negocio
+          if (school.is_franchise) {
+            // Franquicia: Requiere datos básicos + Vincular cuenta de Stripe Connect
+            const tieneStripeValido = Boolean(
+              school.stripe_account_id && school.stripe_onboarding_complete,
+            );
+            requiereCompletarOnboarding =
+              !tieneDatosBasicos || !tieneStripeValido;
+          } else {
+            // Sede Propia: Solo requiere datos básicos (se ignora Stripe)
+            requiereCompletarOnboarding = !tieneDatosBasicos;
+          }
+
+          setNeedsOnboarding(requiereCompletarOnboarding);
+          localStorage.setItem(
+            "needsOnBoarding",
+            requiereCompletarOnboarding ? "true" : "false",
+          );
         }
       } catch (error) {
-        console.error("Error verificando estatus:", error.message);
+        console.error(
+          "Error verificando estatus de la academia:",
+          error.message,
+        );
       } finally {
         setLoading(false);
       }
@@ -41,38 +63,38 @@ const SchoolAdminArea = ({ userProfile }) => {
     }
   }, [userProfile]);
 
-  if (loading)
-    return <LoadingScreen message='Validando credenciales de academia...' />;
+  if (loading) {
+    return <LoadingScreen message='Validando credenciales de la academia...' />;
+  }
 
-  // Renderizado Condicional
   return (
     <>
       {needsOnboarding ? (
-        <Box sx={{ p: 4, maxWidth: 800, mx: "auto" }}>
+        <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 800, mx: "auto" }}>
           <Typography
             variant='h4'
-            sx={{
-              textAlign: "center",
-            }}
+            sx={{ textAlign: "center" }}
             gutterBottom
             fontWeight='bold'
           >
-            ¡Bienvenid@, {userProfile.name}! 🌸
+            ¡Bienvenid@, {userProfile?.name?.split(" ")[0] || "Admin"}! 🌸
           </Typography>
           <Typography
             variant='body1'
             color='textSecondary'
             mb={4}
-            sx={{
-              textAlign: "center",
-            }}
+            sx={{ textAlign: "center" }}
           >
-            Antes de comenzar, configuremos lo básico de tu escuela.
+            Antes de comenzar, configuremos la información básica de tu escuela.
           </Typography>
 
           <OnboardingStepper
             schoolId={userProfile.school_id}
-            onComplete={() => setNeedsOnboarding(false)}
+            schoolName={schoolData?.name}
+            onComplete={() => {
+              setNeedsOnboarding(false);
+              localStorage.setItem("needsOnBoarding", "false");
+            }}
           />
         </Box>
       ) : (

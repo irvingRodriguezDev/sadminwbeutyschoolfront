@@ -187,20 +187,41 @@ const CardEscuela = ({ escuela, index }) => {
                   <PendingIcon />
                 )
               }
-              label={escuela.stripe_account_id ? "CONECTADO" : "PENDIENTE"}
+              label={
+                escuela.is_franchise && escuela.stripe_account_id !== null
+                  ? "CONECTADO"
+                  : escuela.is_franchise === false &&
+                      escuela.stripe_account_id === null
+                    ? "CONECTADO"
+                    : "PENDIENTE"
+              }
               size='small'
               sx={{
-                bgcolor: escuela.stripe_account_id
-                  ? "rgba(46,125,50,.08)"
-                  : "rgba(237,108,2,.08)",
-                color: escuela.stripe_account_id ? "#2e7d32" : "#ed6c02",
+                bgcolor:
+                  escuela.is_franchise && escuela.stripe_account_id !== null
+                    ? "rgba(46,125,50,.08)"
+                    : escuela.is_franchise === false &&
+                        escuela.stripe_account_id === null
+                      ? "rgba(46,125,50,.08)"
+                      : "rgba(237,108,2,.08)",
+                color:
+                  escuela.is_franchise && escuela.stripe_account_id !== null
+                    ? "#2e7d32"
+                    : escuela.is_franchise === false &&
+                        escuela.stripe_account_id === null
+                      ? "#2e7d32"
+                      : "#ed6c02",
                 fontWeight: 800,
                 fontSize: ".68rem",
                 borderRadius: "8px",
                 border: "1px solid",
-                borderColor: escuela.stripe_account_id
-                  ? "rgba(46,125,50,.15)"
-                  : "rgba(237,108,2,.15)",
+                borderColor:
+                  escuela.is_franchise && escuela.stripe_account_id !== null
+                    ? "rgba(46,125,50,.15)"
+                    : escuela.is_franchise === false &&
+                        escuela.stripe_account_id === null
+                      ? "rgba(46,125,50,.15)"
+                      : "rgba(237,108,2,.15)",
                 "& .MuiChip-icon": {
                   color: "inherit",
                 },
